@@ -2,6 +2,7 @@
 #define VIDEOIMPRINTER_H
 
 #include <QMainWindow>
+#include <QKeyEvent>
 
 #include "videoplayer.h"
 #include "eventeditor.h"
@@ -23,9 +24,26 @@ public:
     VideoImprinter(QWidget *parent = 0);
     ~VideoImprinter();
 
+public slots:
+    void toggleEvent(int iEvent);
+    void beginEvent(int iEvent);
+    void endEvent(int iEvent);
+
+signals:
+//    void eventStarted();
+//    void eventEnded();
+
+protected:
+    void keyPressEvent(QKeyEvent *event);
+
 private:
+    enum {numOfEventTypes = 10};
+
     VideoPlayer *videoplayer;
     EventEditor *eventeditor;
+    VideoEvent *currentEvent[numOfEventTypes];
+    QString eventLabelText[numOfEventTypes];
+    bool isEventGoing[numOfEventTypes];
 };
 
 #endif // VIDEOIMPRINTER_H

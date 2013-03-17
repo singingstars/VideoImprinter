@@ -5,6 +5,10 @@
 #include <QTableView>
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
+
+
+#include "eventmodel.h"
 
 /**
  * @brief The EventEditor class is a 'view' for displaying video events.
@@ -21,13 +25,16 @@ public:
      EventEditor(QWidget *parent = 0);
     ~EventEditor();
     
+     bool addEvent(VideoEvent *ve);
+     void sortEvents();
+
 signals:
     
 public slots:
     
 private:
     QTableView *videoEventTable;
-    QAbstractItemModel *videoEventModel;
+    EventModel *videoEventModel;
 };
 
 #endif // EVENTEDITOR_H

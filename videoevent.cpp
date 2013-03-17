@@ -1,10 +1,16 @@
-// ldiv, ldiv_t
-#include <stdlib.h>
 
 #include "videoevent.h"
 
-VideoEvent::VideoEvent(long startTime, long endTime, QString eventText, QObject *parent) :
-    QObject(parent)
+VideoEvent::VideoEvent(QObject *parent)
+    : QObject(parent)
+{
+    this->startTime = 0;
+    this->endTime = 0;
+    this->eventText = QString("");
+}
+
+VideoEvent::VideoEvent(int startTime, int endTime, QString eventText, QObject *parent)
+    : QObject(parent)
 {
     this->startTime = startTime;
     this->endTime = endTime;
@@ -15,12 +21,12 @@ VideoEvent::~VideoEvent()
 {
 }
 
-long VideoEvent::getStartTime() const
+int VideoEvent::getStartTime() const
 {
     return startTime;
 }
 
-long VideoEvent::getEndTime() const
+int VideoEvent::getEndTime() const
 {
     return endTime;
 }
@@ -30,7 +36,7 @@ QString VideoEvent::getEventText() const
     return eventText;
 }
 
-long VideoEvent::getInterval() const
+int VideoEvent::getInterval() const
 {
     return (endTime - startTime);
 }
@@ -50,24 +56,36 @@ QTime VideoEvent::getQInterval() const
     return VideoEvent::QTimeFromMs((endTime - startTime));
 }
 
-void VideoEvent::setStartTime(long time)
+void VideoEvent::setStartTime(int time)
 {
-    this->startTime = time;
+    if (time < endTime)
+        this->startTime = time;
+    else
+    {
+        startTime = endTime;
+        endTime = time;
+    }
 }
 
-void VideoEvent::setEndTime(long time)
+void VideoEvent::setEndTime(int time)
 {
-    this->endTime = time;
+    if (time > startTime)
+        this->endTime = time;
+    else
+    {
+        endTime = startTime;
+        startTime = time;
+    }
 }
 
-void VideoEvent::setStartQTime(QTime time)
+void VideoEvent::setStartTime(QTime time)
 {
-    this->startTime = VideoEvent::msFromQTime(time);
+    this->setStartTime(VideoEvent::msFromQTime(time));
 }
 
-void VideoEvent::setEndQTime(QTime time)
+void VideoEvent::setEndTime(QTime time)
 {
-    this->endTime = VideoEvent::msFromQTime(time);
+    this->setEndTime(VideoEvent::msFromQTime(time));
 }
 
 void VideoEvent::setEventText(QString text)
@@ -91,32 +109,62 @@ bool VideoEvent::operator<(const VideoEvent & other)
     return false;
 }
 
+//bool VideoEvent::lessThan(const VideoEvent *left, const VideoEvent *right)
+//{
+//    if (left->getStartTime() < right->getStartTime())
+//    {
+//        return true;
+//    }
+//    else if (left->getStartTime() == right->getStartTime())
+//    {
+//        if (left->getEndTime() < right->getEndTime())
+//        {
+//            return true;
+//        }
+//    }
+//    return false;
+//}
+
+//bool VideoEvent::greaterThan(const VideoEvent *left, const VideoEvent *right)
+//{
+//    return !( VideoEvent::lessThan(left, right) );
+//}
+
+bool VideoEvent::operator==(const VideoEvent &other)
+{
+    // time has overlap AND text equals
+    // time overlap = otherStartTime within this time duration OR
+    //                otherEndTime within this time duration
+    if ( ( this->contains(other.getStartTime()) || this->contains(other.getEndTime()) )
+          && (other.getEventText() == eventText)
+        )
+        return true;
+
+    return false;
+}
+
+bool VideoEvent::contains(int time)
+{
+    if ((time >= startTime) && (time <= endTime))
+        return true;
+
+    return false;
+}
+
 /**
  * @brief VideoEvent::QTimeFromMs
  * @param totalmsecs
  * @return
- *  copied from ksubtitle project's csubtitles.cpp, author Tom Deblauwe
- *  needs stdlib.h
+ *
  */
-QTime VideoEvent::QTimeFromMs(long totalmsecs)
+QTime VideoEvent::QTimeFromMs(int totalmsecs)
 {
-    // needs stdlib.h
-    ldiv_t divresult;
-    divresult = ldiv (totalmsecs, 1000);
-    long hms = divresult.quot; //contains hours,minutes and seconds
-    int msecs = divresult.rem;
+    int hours = totalmsecs / 3600000;
+    int minutes = (totalmsecs % 3600000) / 60000;
+    int seconds = (totalmsecs % 60000) / 1000;
+    int mseconds = totalmsecs % 1000;
 
-    divresult = ldiv (hms, 60);
-    long hm = divresult.quot; //contains hours and minutes
-    int secs = divresult.rem;
-
-    divresult = ldiv (hm, 60);
-    long h = divresult.quot; //contains hours
-    int mins = divresult.rem;
-
-    int hours = (int) h;
-
-    return QTime(hours, mins, secs, msecs);
+    return QTime(hours, minutes, seconds, mseconds);
 }
 
 /**
@@ -126,7 +174,7 @@ QTime VideoEvent::QTimeFromMs(long totalmsecs)
  *
  *  copied from ksubtitle project's csubtitles.cpp, author Tom Deblauwe
  */
-long VideoEvent::msFromQTime(QTime timeObject)
+int VideoEvent::msFromQTime(QTime timeObject)
 {
     return ((timeObject.hour() * 60 * 60 + timeObject.minute() * 60 + timeObject.second()) * 1000) + timeObject.msec();
 }

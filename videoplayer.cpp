@@ -12,6 +12,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , errorLabel(0)
 {
     QVideoWidget *videoWidget = new QVideoWidget(this);
+    videoWidget->setMinimumSize(320, 240);
 
     QAbstractButton *openButton = new QPushButton(tr("Open..."), this);
     connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
@@ -32,6 +33,24 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     errorLabel = new QLabel(this);
     errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 
+    // setup event text labels with video output in between
+    QBoxLayout *labeledVideoLayout = new QHBoxLayout;
+    QBoxLayout *leftLabelLayout = new QVBoxLayout;
+    QBoxLayout *rightLabelLayout = new QVBoxLayout;
+    for (int i=0; i<numOfLabels; i++)
+    {
+        eventLabel[i] = new QLabel(this);
+        eventLabel[i]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
+        highlightEventText(i, false);
+        if (i % 2)
+            leftLabelLayout->addWidget(eventLabel[i]);
+        else
+            rightLabelLayout->addWidget(eventLabel[i]);
+    }
+    labeledVideoLayout->addLayout(leftLabelLayout);
+    labeledVideoLayout->addWidget(videoWidget);
+    labeledVideoLayout->addLayout(rightLabelLayout);
+
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
     controlLayout->addWidget(openButton);
@@ -39,7 +58,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     controlLayout->addWidget(positionSlider);
 
     QBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(videoWidget);
+    layout->addLayout(labeledVideoLayout);
     layout->addLayout(controlLayout);
     layout->addWidget(errorLabel);
 
@@ -51,10 +70,35 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
     connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
     connect(&mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
+
 }
 
 VideoPlayer::~VideoPlayer()
 {
+}
+
+int VideoPlayer::getPosition()
+{
+    return (int)(mediaPlayer.position());
+}
+
+void VideoPlayer::highlightEventText(int iLabel, bool isOn)
+{
+    if ((iLabel >= numOfLabels) | (iLabel < 0))
+        return;
+
+    if (isOn)
+        eventLabel[iLabel]->setStyleSheet("QLabel {background-color : yellow}");
+    else
+        eventLabel[iLabel]->setStyleSheet("QLabel {background : none}");
+}
+
+void VideoPlayer::setEventLabel(int iLabel, QString labelText)
+{
+    if ((iLabel >= numOfLabels) | (iLabel < 0))
+        return;
+
+    eventLabel[iLabel]->setText(labelText);
 }
 
 void VideoPlayer::openFile()

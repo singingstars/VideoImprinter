@@ -13,8 +13,8 @@ class QLabel;
 QT_END_NAMESPACE
 
 /**
- * @brief The VideoPlayer class handles video playback.
- * It was largely originated from Qt5.0 examples "videowidget".
+ * @brief The VideoPlayer widget handles video playback.
+ * It was largely originated from Qt5.0 example "videowidget".
  */
 class VideoPlayer : public QWidget
 {
@@ -23,6 +23,10 @@ class VideoPlayer : public QWidget
 public:
     VideoPlayer(QWidget *parent = 0);
     ~VideoPlayer();
+
+    int getPosition();
+    void highlightEventText(int iLabel, bool isOn);
+    void setEventLabel(int iLabel, QString labelText);
 
 public slots:
     void openFile();
@@ -36,10 +40,16 @@ private slots:
     void handleError();
 
 private:
+    enum {numOfLabels = 10};
+
     QMediaPlayer mediaPlayer;
     QAbstractButton *playButton;
     QSlider *positionSlider;
     QLabel *errorLabel;
+    // a batch of labels indicating on/off of video-events
+    QLabel *eventLabel[numOfLabels];
+
+    void setupEventTextLabels();
 };
 
 #endif // VIDEOPLAYER_H
