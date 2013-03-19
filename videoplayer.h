@@ -31,6 +31,7 @@ public:
 public slots:
     void openFile();
     void play();
+    void updateTime();
 
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);
@@ -45,6 +46,7 @@ private:
     QMediaPlayer mediaPlayer;
     QAbstractButton *playButton;
     QSlider *positionSlider;
+    QLabel *timeLabel;
     QLabel *errorLabel;
     // a batch of labels indicating on/off of video-events
     QLabel *eventLabel[numOfLabels];

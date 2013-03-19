@@ -47,6 +47,7 @@ public:
 
 
     static QTime QTimeFromMs(int totalmsecs);
+    static QTime QTimeFromMs(qint64 totalmsecs);
     static int msFromQTime(QTime timeObject);
 
 private:

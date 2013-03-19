@@ -167,6 +167,16 @@ QTime VideoEvent::QTimeFromMs(int totalmsecs)
     return QTime(hours, minutes, seconds, mseconds);
 }
 
+QTime VideoEvent::QTimeFromMs(qint64 totalmsecs)
+{
+    qint64 hours = totalmsecs / 3600000;
+    qint64 minutes = (totalmsecs % 3600000) / 60000;
+    qint64 seconds = (totalmsecs % 60000) / 1000;
+    qint64 mseconds = totalmsecs % 1000;
+
+    return QTime(hours, minutes, seconds, mseconds);
+}
+
 /**
  * @brief VideoEvent::msFromQTime
  * @param timeObject

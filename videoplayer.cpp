@@ -30,6 +30,11 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     connect(positionSlider, SIGNAL(sliderMoved(int)),
             this, SLOT(setPosition(int)));
 
+    timeLabel = new QLabel(this);
+
+    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(updateTime()));
+    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(updateTime()));
+
     errorLabel = new QLabel(this);
     errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
 
@@ -40,9 +45,9 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     for (int i=0; i<numOfLabels; i++)
     {
         eventLabel[i] = new QLabel(this);
-        eventLabel[i]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
+        eventLabel[i]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         highlightEventText(i, false);
-        if (i % 2)
+        if (i < numOfLabels/2)
             leftLabelLayout->addWidget(eventLabel[i]);
         else
             rightLabelLayout->addWidget(eventLabel[i]);
@@ -56,6 +61,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     controlLayout->addWidget(openButton);
     controlLayout->addWidget(playButton);
     controlLayout->addWidget(positionSlider);
+    controlLayout->addWidget(timeLabel);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(labeledVideoLayout);
@@ -123,6 +129,35 @@ void VideoPlayer::play()
         mediaPlayer.play();
         break;
     }
+}
+
+void VideoPlayer::updateTime()
+{
+    qint64 len = mediaPlayer.duration();
+    qint64 pos = mediaPlayer.position();
+    QString timeString;
+    if (pos || len)
+    {
+        qint64 sec = pos/1000;
+        qint64 min = sec/60;
+        qint64 hour = min/60;
+        qint64 msec = pos;
+
+        QTime playTime(hour%60, min%60, sec%60, msec%1000);
+        sec = len / 1000;
+        min = sec / 60;
+        hour = min / 60;
+        msec = len;
+
+        QTime stopTime(hour%60, min%60, sec%60, msec%1000);
+        QString timeFormat = "m:ss";
+        if (hour > 0)
+            timeFormat = "h:mm:ss";
+        timeString = playTime.toString(timeFormat);
+        if (len)
+            timeString += " / " + stopTime.toString(timeFormat);
+    }
+    timeLabel->setText(timeString);
 }
 
 void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
