@@ -6,6 +6,7 @@
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
+#include <QLabel>
 
 
 #include "eventmodel.h"
@@ -28,13 +29,27 @@ public:
      bool addEvent(VideoEvent *ve);
      void sortEvents();
 
+     // modify selected video event
+     void changeStartTime(int currentTime);
+     void changeEndTime(int currentTime);
+     void changeEventText(QString newText);
+
 signals:
+     void eventAdded(int time);
     
 public slots:
-    
+     void focusEvent(int currentTime);
+     void selectPreviousEvent();
+     void selectNextEvent();
+     void selectCurrentEvent(int currentTime);
+
+//     void outputDebug();
+
 private:
     QTableView *videoEventTable;
     EventModel *videoEventModel;
+
+//    QLabel *editorDebug;
 };
 
 #endif // EVENTEDITOR_H

@@ -29,6 +29,14 @@ public slots:
     void beginEvent(int iEvent);
     void endEvent(int iEvent);
 
+    void selectPreviousEvent();
+    void selectNextEvent();
+    void selectCurrentEvent(int currentTime);
+
+    void changeStartTime(int currentTime);
+    void changeEndTime(int currentTime);
+    void changeEventText(QString newText);
+
 signals:
 //    void eventStarted();
 //    void eventEnded();
@@ -37,12 +45,15 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyPressJumpForward(QKeyEvent *event);
     void keyPressJumpBackward(QKeyEvent *event);
+    void keyPressChangeEventText(QKeyEvent *event);
 
 private:
     enum {numOfEventTypes = 10};
 
     VideoPlayer *videoplayer;
     EventEditor *eventeditor;
+
+    // currently ongoing events, to be added to the editor
     VideoEvent *currentEvent[numOfEventTypes];
     QString eventLabelText[numOfEventTypes];
     bool isEventGoing[numOfEventTypes];

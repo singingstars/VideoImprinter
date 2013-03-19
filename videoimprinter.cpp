@@ -61,48 +61,146 @@ void VideoImprinter::endEvent(int iEvent)
     videoplayer->highlightEventText(iEvent, false);
 }
 
+void VideoImprinter::selectPreviousEvent()
+{
+    eventeditor->selectPreviousEvent();
+}
+
+void VideoImprinter::selectNextEvent()
+{
+    eventeditor->selectNextEvent();
+}
+
+void VideoImprinter::selectCurrentEvent(int currentTime)
+{
+    eventeditor->selectCurrentEvent(currentTime);
+}
+
+void VideoImprinter::changeStartTime(int currentTime)
+{
+    eventeditor->changeStartTime(currentTime);
+}
+
+void VideoImprinter::changeEndTime(int currentTime)
+{
+    eventeditor->changeEndTime(currentTime);
+}
+
+void VideoImprinter::changeEventText(QString newText)
+{
+    eventeditor->changeEventText(newText);
+}
+
 void VideoImprinter::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    // video player controls
     case Qt::Key_Space:
         videoplayer->play();
-        break;
-    case Qt::Key_0:
-        this->toggleEvent(0);
-        break;
-    case Qt::Key_1:
-        this->toggleEvent(1);
-        break;
-    case Qt::Key_2:
-        this->toggleEvent(2);
-        break;
-    case Qt::Key_3:
-        this->toggleEvent(3);
-        break;
-    case Qt::Key_4:
-        this->toggleEvent(4);
-        break;
-    case Qt::Key_5:
-        this->toggleEvent(5);
-        break;
-    case Qt::Key_6:
-        this->toggleEvent(6);
-        break;
-    case Qt::Key_7:
-        this->toggleEvent(7);
-        break;
-    case Qt::Key_8:
-        this->toggleEvent(8);
-        break;
-    case Qt::Key_9:
-        this->toggleEvent(9);
         break;
     case Qt::Key_Left:
         this->keyPressJumpBackward(event);
         break;
     case Qt::Key_Right:
         this->keyPressJumpForward(event);
+        break;
+
+    // event controls/modifiers
+    case Qt::Key_0:
+        if (event->modifiers() == Qt::ControlModifier)
+        {
+            this->changeEventText(eventLabelText[0]);
+            break;
+        }
+        this->toggleEvent(0);
+        break;
+    case Qt::Key_1:
+        if (event->modifiers() == Qt::ControlModifier)
+        {
+            this->changeEventText(eventLabelText[1]);
+            break;
+        }
+        this->toggleEvent(1);
+        break;
+    case Qt::Key_2:
+        if (event->modifiers() == Qt::ControlModifier)
+        {
+            this->changeEventText(eventLabelText[2]);
+            break;
+        }
+        this->toggleEvent(2);
+        break;
+    case Qt::Key_3:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[3]);
+            break;
+        }
+        this->toggleEvent(3);
+        break;
+    case Qt::Key_4:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[4]);
+            break;
+        }
+        this->toggleEvent(4);
+        break;
+    case Qt::Key_5:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[5]);
+            break;
+        }
+        this->toggleEvent(5);
+        break;
+    case Qt::Key_6:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[6]);
+            break;
+        }
+        this->toggleEvent(6);
+        break;
+    case Qt::Key_7:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[7]);
+            break;
+        }
+        this->toggleEvent(7);
+        break;
+    case Qt::Key_8:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[8]);
+            break;
+        }
+        this->toggleEvent(8);
+        break;
+    case Qt::Key_9:
+        if (event->modifiers() == Qt::ShiftModifier)
+        {
+            this->changeEventText(eventLabelText[9]);
+            break;
+        }
+        this->toggleEvent(9);
+        break;
+    case Qt::Key_BracketLeft:
+        this->selectPreviousEvent();
+        break;
+    case Qt::Key_BracketRight:
+        this->selectNextEvent();
+        break;
+    case Qt::Key_P:
+        this->selectCurrentEvent(videoplayer->getPosition());
+        break;
+    case Qt::Key_Semicolon:
+        this->changeStartTime(videoplayer->getPosition());
+        break;
+    case Qt::Key_Apostrophe:
+        this->changeEndTime(videoplayer->getPosition());
         break;
     default:
         QMainWindow::keyPressEvent(event);
@@ -111,6 +209,7 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
 
 void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
 {
+    //TODO: use settings instead of magic numbers
     switch(event->modifiers())
     {
     case Qt::NoModifier:
@@ -120,7 +219,7 @@ void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
         videoplayer->jumpTo(1000);
         break;
     case Qt::ShiftModifier:
-        videoplayer->jumpTo(3000);
+        videoplayer->jumpTo(5000);
         break;
     default:
         return;
@@ -129,6 +228,7 @@ void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
 
 void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
 {
+    //TODO: use settings instead of magic numbers
     switch(event->modifiers())
     {
     case Qt::NoModifier:
@@ -138,10 +238,9 @@ void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
         videoplayer->jumpTo(-1000);
         break;
     case Qt::ShiftModifier:
-        videoplayer->jumpTo(-3000);
+        videoplayer->jumpTo(-5000);
         break;
     default:
         return;
     }
 }
-

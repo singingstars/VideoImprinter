@@ -37,6 +37,7 @@ public:
 
 EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
     : QAbstractTableModel(parent)
+    , selectedEvent(-1)
 {
     this->listOfEvents = eventList;
 }
@@ -235,6 +236,33 @@ void EventModel::sort(Qt::SortOrder order)
     emit(layoutChanged());
 }
 
+QModelIndex EventModel::getCurrentEventId(int currentTime)
+{
+    if (!rowCount())
+        return QModelIndex();
+
+    int maxId = 0;
+    int maxTime = (listOfEvents.at(0))->getStartTime();
+
+    for (int i=0; i<rowCount(); i++)
+    {
+        int ithTime = (listOfEvents.at(i))->getStartTime();
+
+        if ((ithTime < currentTime) && (ithTime > maxTime))
+        {
+            maxId = i;
+            maxTime = ithTime;
+        }
+    }
+
+    return index(maxId, 0, QModelIndex());
+}
+
+int EventModel::getSelectedEvent()
+{
+    return selectedEvent;
+}
+
 
 QVariant EventModel::data(const QModelIndex &index, int role) const
 {
@@ -251,11 +279,11 @@ QVariant EventModel::data(const QModelIndex &index, int role) const
          switch(index.column())
          {
          case 0:
-             return (currentEvent->getStartQTime()).toString("hh:mm:ss.zzz");
+             return currentEvent->getStartQTime().toString("hh:mm:ss.zzz");
          case 1:
-             return (currentEvent->getEndQTime()).toString("hh:mm:ss.zzz");
+             return currentEvent->getEndQTime().toString("hh:mm:ss.zzz");
          case 2:
-             return (currentEvent->getQInterval()).toString("hh:mm:ss.zzz");
+             return currentEvent->getQInterval().toString("hh:mm:ss.zzz");
          case 3:
              return currentEvent->getEventText();
          default:
@@ -270,4 +298,64 @@ QVariant EventModel::data(const QModelIndex &index, int role) const
 void EventModel::parseSRT()
 {
     //TODO
+}
+
+
+void EventModel::selectPreviousEvent()
+{
+    if (selectedEvent < 0)
+        return;
+
+    if (selectedEvent > 0)
+        selectedEvent--;
+
+    emit eventSelectionChanged(selectedEvent);
+}
+
+void EventModel::selectNextEvent()
+{
+    if (selectedEvent < 0)
+        return;
+
+    if (selectedEvent < (rowCount() - 1))
+        selectedEvent++;
+
+    emit eventSelectionChanged(selectedEvent);
+}
+
+void EventModel::selectCurrentEvent(int currentTime)
+{
+    QModelIndex currentId = getCurrentEventId(currentTime);
+
+    selectedEvent = currentId.row();
+
+    emit eventSelectionChanged(selectedEvent);
+}
+
+
+void EventModel::changeStartTime(int currentTime)
+{
+    if (selectedEvent < 0)
+        return;
+
+    QModelIndex id = index(selectedEvent, 0, QModelIndex());
+    setData(id, currentTime, Qt::EditRole);
+}
+
+void EventModel::changeEndTime(int currentTime)
+{
+    if (selectedEvent < 0)
+        return;
+
+    QModelIndex id = index(selectedEvent, 1, QModelIndex());
+    setData(id, currentTime, Qt::EditRole);
+}
+
+void EventModel::changeEventText(QString newText)
+{
+    if (selectedEvent < 0)
+        return;
+
+    QModelIndex id = index(selectedEvent, 2, QModelIndex());
+    setData(id, newText, Qt::EditRole);
 }

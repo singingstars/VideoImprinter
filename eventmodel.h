@@ -34,13 +34,26 @@ public:
     bool isEventDuplicate(VideoEvent *ve ) const;
     void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
-signals:
-    
-public slots:
+    QModelIndex getCurrentEventId(int currentTime);
+    int getSelectedEvent();
+    void changeStartTime(int currentTime);
+    void changeEndTime(int currentTime);
+    void changeEventText(QString newText);
 
+public slots:
+    void selectPreviousEvent();
+    void selectNextEvent();
+    void selectCurrentEvent(int currentTime);
+
+signals:
+    void eventSelectionChanged(int row);
+    
 private:
     //TODO: maybe a custom list type like QStringList?
     QList<VideoEvent *> listOfEvents;
+
+    // is a selected row
+    int selectedEvent;
 
     void parseSRT();
 

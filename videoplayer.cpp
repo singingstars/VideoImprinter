@@ -1,6 +1,7 @@
 #include "videoplayer.h"
 
 #include <QtWidgets>
+#include <QStringBuilder>
 #include <qvideowidget.h>
 #include <qvideosurfaceformat.h>
 
@@ -104,7 +105,8 @@ void VideoPlayer::setEventLabel(int iLabel, QString labelText)
     if ((iLabel >= numOfLabels) | (iLabel < 0))
         return;
 
-    eventLabel[iLabel]->setText(labelText);
+    QString numberedLabel = QString("[%1] ").arg(iLabel) % labelText;
+    eventLabel[iLabel]->setText(numberedLabel);
 }
 
 void VideoPlayer::openFile()
@@ -150,9 +152,9 @@ void VideoPlayer::updateTime()
         msec = len;
 
         QTime stopTime(hour%60, min%60, sec%60, msec%1000);
-        QString timeFormat = "m:ss";
+        QString timeFormat = "m:ss:zzz";
         if (hour > 0)
-            timeFormat = "h:mm:ss";
+            timeFormat = "h:mm:ss:zzz";
         timeString = playTime.toString(timeFormat);
         if (len)
             timeString += " / " + stopTime.toString(timeFormat);

@@ -14,6 +14,9 @@ EventEditor::EventEditor(QWidget *parent) :
     videoEventTable->setModel(videoEventModel);
     videoEventTable->setSortingEnabled(false);
 
+    videoEventTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    videoEventTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
     // some sample fixture data
 //    QString text1 = "latency";
 //    QString text2 = "courtship";
@@ -42,7 +45,17 @@ EventEditor::EventEditor(QWidget *parent) :
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(videoEventTable);
 
+    // debug output
+//    editorDebug = new QLabel;
+//    layout->addWidget(editorDebug);
+//    connect(videoEventModel, SIGNAL(dataChanged(QModelIndex,QModelIndex))
+//            , this, SLOT(outputDebug()));
+
     setLayout(layout);
+
+    connect(this, SIGNAL(eventAdded(int)), this, SLOT(focusEvent(int)));
+    connect(videoEventModel, SIGNAL(eventSelectionChanged(int))
+            , videoEventTable, SLOT(selectRow(int)));
 }
 
 EventEditor::~EventEditor()
@@ -68,6 +81,8 @@ bool EventEditor::addEvent(VideoEvent *ve)
         videoEventModel->setData(index, ve->getEventText(), Qt::EditRole);
 
         videoEventModel->sort();
+
+        emit eventAdded(ve->getStartTime());
         return true;
     } //TODO: handle duplicate
 
@@ -76,4 +91,52 @@ bool EventEditor::addEvent(VideoEvent *ve)
 
 void EventEditor::sortEvents()
 {
+
 }
+
+void EventEditor::changeStartTime(int currentTime)
+{
+    setUpdatesEnabled(false);
+    videoEventModel->changeStartTime(currentTime);
+    setUpdatesEnabled(true);
+}
+
+void EventEditor::changeEndTime(int currentTime)
+{
+    setUpdatesEnabled(false);
+    videoEventModel->changeEndTime(currentTime);
+    setUpdatesEnabled(true);
+}
+
+void EventEditor::changeEventText(QString newText)
+{
+    setUpdatesEnabled(false);
+    videoEventModel->changeEventText(newText);
+    setUpdatesEnabled(true);
+}
+
+void EventEditor::focusEvent(int currentTime)
+{
+    QModelIndex currentId = videoEventModel->getCurrentEventId(currentTime);
+    videoEventTable->scrollTo(currentId);
+}
+
+void EventEditor::selectPreviousEvent()
+{
+    videoEventModel->selectPreviousEvent();
+}
+
+void EventEditor::selectNextEvent()
+{
+    videoEventModel->selectNextEvent();
+}
+
+void EventEditor::selectCurrentEvent(int currentTime)
+{
+    videoEventModel->selectCurrentEvent(currentTime);
+}
+
+//void EventEditor::outputDebug()
+//{
+//    editorDebug->setText(QString("y-%1").arg(QTime::currentTime().toString()));
+//}
