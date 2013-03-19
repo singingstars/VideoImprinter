@@ -65,6 +65,9 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    case Qt::Key_Space:
+        videoplayer->play();
+        break;
     case Qt::Key_0:
         this->toggleEvent(0);
         break;
@@ -95,7 +98,50 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     case Qt::Key_9:
         this->toggleEvent(9);
         break;
+    case Qt::Key_Left:
+        this->keyPressJumpBackward(event);
+        break;
+    case Qt::Key_Right:
+        this->keyPressJumpForward(event);
+        break;
     default:
         QMainWindow::keyPressEvent(event);
     }
 }
+
+void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
+{
+    switch(event->modifiers())
+    {
+    case Qt::NoModifier:
+        videoplayer->jumpTo(250);
+        break;
+    case Qt::ControlModifier:
+        videoplayer->jumpTo(1000);
+        break;
+    case Qt::ShiftModifier:
+        videoplayer->jumpTo(3000);
+        break;
+    default:
+        return;
+    }
+}
+
+void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
+{
+    switch(event->modifiers())
+    {
+    case Qt::NoModifier:
+        videoplayer->jumpTo(-250);
+        break;
+    case Qt::ControlModifier:
+        videoplayer->jumpTo(-1000);
+        break;
+    case Qt::ShiftModifier:
+        videoplayer->jumpTo(-3000);
+        break;
+    default:
+        return;
+    }
+}
+

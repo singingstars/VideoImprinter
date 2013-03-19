@@ -32,6 +32,7 @@ public slots:
     void openFile();
     void play();
     void updateTime();
+    void jumpTo(int increament);
 
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);

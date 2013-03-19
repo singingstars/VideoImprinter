@@ -35,6 +35,8 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent *event);
+    void keyPressJumpForward(QKeyEvent *event);
+    void keyPressJumpBackward(QKeyEvent *event);
 
 private:
     enum {numOfEventTypes = 10};

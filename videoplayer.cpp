@@ -160,6 +160,11 @@ void VideoPlayer::updateTime()
     timeLabel->setText(timeString);
 }
 
+void VideoPlayer::jumpTo(int increament)
+{
+    mediaPlayer.setPosition(mediaPlayer.position() + increament);
+}
+
 void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
 {
     switch(state) {

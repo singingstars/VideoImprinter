@@ -7,8 +7,6 @@ TODO
 ----
 
 * modify layout for cleaness and ease of use
-* quick and precise video jump forwards/backwards on keypress
-* play/pause on keypress
 * read in video events from .srt file
 * automatic read in .srt file with same file name as video file, if .srt file exists
 * save video events to .srt file
