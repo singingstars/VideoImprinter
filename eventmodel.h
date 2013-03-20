@@ -19,7 +19,7 @@ class EventModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    EventModel(QList<VideoEvent *> listOfEvents, QObject *parent = 0);
+    EventModel(QList<VideoEvent *> eventList, QObject *parent = 0);
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -34,11 +34,14 @@ public:
     bool isEventDuplicate(VideoEvent *ve ) const;
     void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
+    int getCurrentEventRow(int currentTime);
     QModelIndex getCurrentEventId(int currentTime);
     int getSelectedEvent();
     void changeStartTime(int currentTime);
     void changeEndTime(int currentTime);
     void changeEventText(QString newText);
+
+    int rowChangedFrom(int originalRow);
 
 public slots:
     void selectPreviousEvent();
@@ -47,10 +50,12 @@ public slots:
 
 signals:
     void eventSelectionChanged(int row);
-    
+
 private:
     //TODO: maybe a custom list type like QStringList?
     QList<VideoEvent *> listOfEvents;
+
+    QList<int> listOfChangedRow;
 
     // is a selected row
     int selectedEvent;

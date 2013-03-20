@@ -10,9 +10,13 @@ EventEditor::EventEditor(QWidget *parent) :
     QList<VideoEvent *> eventList;
     videoEventModel = new EventModel(eventList, parent);
 
+//    videoEventDelegate = new VideoEventDelegate(this);
+
     videoEventTable = new QTableView(this);
     videoEventTable->setModel(videoEventModel);
     videoEventTable->setSortingEnabled(false);
+//    videoEventTable->setItemDelegate(videoEventDelegate);
+    videoEventTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     videoEventTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     videoEventTable->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -53,9 +57,11 @@ EventEditor::EventEditor(QWidget *parent) :
 
     setLayout(layout);
 
-    connect(this, SIGNAL(eventAdded(int)), this, SLOT(focusEvent(int)));
+    connect(this, SIGNAL(eventAdded(int)), this, SLOT(scrollToRow(int)));
     connect(videoEventModel, SIGNAL(eventSelectionChanged(int))
             , videoEventTable, SLOT(selectRow(int)));
+    connect(videoEventTable, SIGNAL(doubleClicked(QModelIndex))
+            , this, SLOT(processDoubleClick(QModelIndex)));
 }
 
 EventEditor::~EventEditor()
@@ -69,20 +75,20 @@ bool EventEditor::addEvent(VideoEvent *ve)
     {
         videoEventModel->insertRows(0, 1, QModelIndex());
 
-        // must set end time first; otherwise can't set start time; don't know why
+        // must set end time first; otherwise start time > end time, will be swaped
         QModelIndex index;
-        index = videoEventModel->index(0, 1, QModelIndex());
+        index = videoEventModel->index(0, VideoEvent::EndTimeField, QModelIndex());
         videoEventModel->setData(index, ve->getEndTime(), Qt::EditRole);
 
-        index = videoEventModel->index(0, 0, QModelIndex());
+        index = videoEventModel->index(0, VideoEvent::StartTimeField, QModelIndex());
         videoEventModel->setData(index, ve->getStartTime(), Qt::EditRole);
 
-        index = videoEventModel->index(0, 2, QModelIndex());
+        index = videoEventModel->index(0, VideoEvent::EventTextField, QModelIndex());
         videoEventModel->setData(index, ve->getEventText(), Qt::EditRole);
 
         videoEventModel->sort();
 
-        emit eventAdded(ve->getStartTime());
+        emit eventAdded(videoEventModel->rowChangedFrom(0));
         return true;
     } //TODO: handle duplicate
 
@@ -115,10 +121,23 @@ void EventEditor::changeEventText(QString newText)
     setUpdatesEnabled(true);
 }
 
-void EventEditor::focusEvent(int currentTime)
+void EventEditor::scrollToTime(int currentTime)
 {
     QModelIndex currentId = videoEventModel->getCurrentEventId(currentTime);
     videoEventTable->scrollTo(currentId);
+}
+
+void EventEditor::scrollToTime(qint64 currentTime)
+{
+    currentTime = static_cast<int>(currentTime);
+    QModelIndex currentId = videoEventModel->getCurrentEventId(currentTime);
+    videoEventTable->scrollTo(currentId);
+}
+
+void EventEditor::scrollToRow(int row)
+{
+    QModelIndex idRow = videoEventModel->index(row, 0, QModelIndex());
+    videoEventTable->scrollTo(idRow);
 }
 
 void EventEditor::selectPreviousEvent()
@@ -134,6 +153,24 @@ void EventEditor::selectNextEvent()
 void EventEditor::selectCurrentEvent(int currentTime)
 {
     videoEventModel->selectCurrentEvent(currentTime);
+}
+
+void EventEditor::processDoubleClick(QModelIndex index)
+{
+    if (!index.isValid())
+        return;
+
+    if (index.row() >= videoEventModel->rowCount())
+        return;
+
+    if ((index.column() == VideoEvent::StartTimeField)
+         || (index.column() == VideoEvent::EndTimeField))
+    {
+        int currentTime = videoEventModel->data(index, Qt::UserRole).toInt();
+        emit timeDoubleClicked(currentTime);
+    }
+
+    return;
 }
 
 //void EventEditor::outputDebug()

@@ -33,6 +33,8 @@ public slots:
     void play();
     void updateTime();
     void jumpTo(int increament);
+    void speedUp();
+    void speedDown();
 
 private slots:
     void mediaStateChanged(QMediaPlayer::State state);
@@ -42,15 +44,20 @@ private slots:
     void handleError();
 
 private:
-    enum {numOfLabels = 10};
+    enum {numOfLabels = 10, numOfSpeeds = 10};
 
     QMediaPlayer mediaPlayer;
     QAbstractButton *playButton;
     QSlider *positionSlider;
     QLabel *timeLabel;
     QLabel *errorLabel;
+
     // a batch of labels indicating on/off of video-events
     QLabel *eventLabel[numOfLabels];
+
+    // playback speed levels
+    int currentSpeedId;
+    qreal speeds[numOfSpeeds];
 
     void setupEventTextLabels();
 };

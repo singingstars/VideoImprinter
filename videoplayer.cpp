@@ -12,6 +12,13 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , positionSlider(0)
     , errorLabel(0)
 {
+    // setup playback speeds
+    qreal tmpSpeeds[numOfSpeeds] = {-2.0, -1.0, 0.1, 0.25, 0.5
+                                 , 1.0, 2.0, 4.0, 8.0, 12.0};
+    currentSpeedId = 5;
+    for (int i=0; i<numOfSpeeds; i++)
+        speeds[i] = tmpSpeeds[i];
+
     QVideoWidget *videoWidget = new QVideoWidget(this);
     videoWidget->setMinimumSize(320, 240);
 
@@ -165,6 +172,34 @@ void VideoPlayer::updateTime()
 void VideoPlayer::jumpTo(int increament)
 {
     mediaPlayer.setPosition(mediaPlayer.position() + increament);
+}
+
+void VideoPlayer::speedUp()
+{
+//    if (mediaPlayer.state() != QMediaPlayer::PlayingState)
+//        return;
+
+    if ((currentSpeedId < numOfSpeeds - 1) && (currentSpeedId >= 0))
+        currentSpeedId++;
+    else
+        currentSpeedId = numOfSpeeds - 1;
+
+    mediaPlayer.setPlaybackRate(speeds[currentSpeedId]);
+    errorLabel->setText(QString("Speed: %1").arg(speeds[currentSpeedId]));
+}
+
+void VideoPlayer::speedDown()
+{
+//    if (mediaPlayer.state() != QMediaPlayer::PlayingState)
+//        return;
+
+    if ((currentSpeedId > 0) && (currentSpeedId < numOfSpeeds))
+        currentSpeedId--;
+    else
+        currentSpeedId = 0;
+
+    mediaPlayer.setPlaybackRate(speeds[currentSpeedId]);
+    errorLabel->setText(QString("Speed: %1").arg(speeds[currentSpeedId]));
 }
 
 void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)

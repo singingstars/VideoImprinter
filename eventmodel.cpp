@@ -40,12 +40,19 @@ EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
     , selectedEvent(-1)
 {
     this->listOfEvents = eventList;
+
+    listOfChangedRow.reserve(rowCount());
+
+    for (int i=0; i<rowCount(); i++)
+    {
+        listOfChangedRow.append(i);
+    }
 }
 
 int EventModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 4;
+    return VideoEvent::numOfFields;
 }
 
 int EventModel::rowCount(const QModelIndex &parent) const
@@ -54,6 +61,52 @@ int EventModel::rowCount(const QModelIndex &parent) const
     return listOfEvents.count();
 }
 
+QVariant EventModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (index.row() >= listOfEvents.size())
+        return QVariant();
+
+    if (role == Qt::DisplayRole)
+    {
+         VideoEvent *currentEvent = listOfEvents.at(index.row());
+         switch(index.column())
+         {
+         case VideoEvent::StartTimeField:
+             return currentEvent->getStartQTime().toString("hh:mm:ss.zzz");
+         case VideoEvent::EndTimeField:
+             return currentEvent->getEndQTime().toString("hh:mm:ss.zzz");
+         case VideoEvent::IntervalField:
+             return currentEvent->getQInterval().toString("hh:mm:ss.zzz");
+         case VideoEvent::EventTextField:
+             return currentEvent->getEventText();
+         default:
+             return QVariant();
+         }
+    }
+
+    if (role == Qt::UserRole)
+    {
+        VideoEvent *currentEvent = listOfEvents.at(index.row());
+        switch(index.column())
+        {
+        case VideoEvent::StartTimeField:
+            return currentEvent->getStartTime();
+        case VideoEvent::EndTimeField:
+            return currentEvent->getEndTime();
+        case VideoEvent::IntervalField:
+            return currentEvent->getInterval();
+        case VideoEvent::EventTextField:
+            return currentEvent->getEventText();
+        default:
+            return QVariant();
+        }
+    }
+
+    return QVariant();
+}
 
 QVariant EventModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -64,13 +117,13 @@ QVariant EventModel::headerData(int section, Qt::Orientation orientation, int ro
     {
         switch(section)
         {
-        case 0:
+        case VideoEvent::StartTimeField:
             return QString("Start");
-        case 1:
+        case VideoEvent::EndTimeField:
             return QString("End");
-        case 2:
+        case VideoEvent::IntervalField:
             return QString("Interval");
-        case 3:
+        case VideoEvent::EventTextField:
             return QString("Event Text");
         default:
             return QVariant();
@@ -100,7 +153,7 @@ bool EventModel::setData(const QModelIndex &index, const QVariant &value, int ro
         int row = index.row();
         VideoEvent * ev = listOfEvents.value(row);
 
-        if (index.column() == 0)
+        if (index.column() == VideoEvent::StartTimeField)
             {
                if (value.type() == QMetaType::Int)
                    ev->setStartTime(value.toInt());
@@ -109,7 +162,7 @@ bool EventModel::setData(const QModelIndex &index, const QVariant &value, int ro
                else
                    return false;
             }
-        else if (index.column() == 1)
+        else if (index.column() == VideoEvent::EndTimeField)
             {
                 if (value.type() == QMetaType::Int)
                     ev->setEndTime(value.toInt());
@@ -118,7 +171,7 @@ bool EventModel::setData(const QModelIndex &index, const QVariant &value, int ro
                 else
                     return false;
             }
-        else if (index.column() == 2)
+        else if (index.column() == VideoEvent::EventTextField)
             {
                 if (value.type() == QMetaType::QString)
                     ev->setEventText(value.toString());
@@ -140,7 +193,7 @@ bool EventModel::insertRows(int position, int rows, const QModelIndex &index)
     beginInsertRows(QModelIndex(), position, position + rows - 1);
 
     for (int row = 0; row < rows; ++row) {
-        VideoEvent *ev = new VideoEvent(2000, 0, QString(""));
+        VideoEvent *ev = new VideoEvent(0, 2000, QString(""));
         listOfEvents.insert(position, ev);
     }
 
@@ -213,10 +266,13 @@ void EventModel::sort(Qt::SortOrder order)
     sorted_events.reserve(rowCount());
 
     QModelIndexList changedPersistentIndexesFrom, changedPersistentIndexesTo;
+    QList<int> changedRows;
 
     for (int i = 0; i < rowCount(); ++i)
     {
         int r = listOfSorting.at(i).second;
+
+        changedRows.append(r);
 
         sorted_events.append(listOfSorting.at(i).first);
 
@@ -231,9 +287,32 @@ void EventModel::sort(Qt::SortOrder order)
     }
 
     listOfEvents = sorted_events;
+    listOfChangedRow = changedRows;
     changePersistentIndexList(changedPersistentIndexesFrom, changedPersistentIndexesTo);
 
     emit(layoutChanged());
+}
+
+int EventModel::getCurrentEventRow(int currentTime)
+{
+    if (!rowCount())
+        return -1;
+
+    int maxId = 0;
+    int maxTime = (listOfEvents.at(0))->getStartTime();
+
+    for (int i=0; i<rowCount(); i++)
+    {
+        int ithTime = (listOfEvents.at(i))->getStartTime();
+
+        if ((ithTime < currentTime) && (ithTime > maxTime))
+        {
+            maxId = i;
+            maxTime = ithTime;
+        }
+    }
+
+    return maxId;
 }
 
 QModelIndex EventModel::getCurrentEventId(int currentTime)
@@ -255,7 +334,7 @@ QModelIndex EventModel::getCurrentEventId(int currentTime)
         }
     }
 
-    return index(maxId, 0, QModelIndex());
+    return index(maxId, VideoEvent::StartTimeField, QModelIndex());
 }
 
 int EventModel::getSelectedEvent()
@@ -263,36 +342,6 @@ int EventModel::getSelectedEvent()
     return selectedEvent;
 }
 
-
-QVariant EventModel::data(const QModelIndex &index, int role) const
-{
-    if (!index.isValid())
-        return QVariant();
-
-
-    if (index.row() >= listOfEvents.size())
-        return QVariant();
-
-    if (role == Qt::DisplayRole)
-    {
-         VideoEvent *currentEvent = listOfEvents.at(index.row());
-         switch(index.column())
-         {
-         case 0:
-             return currentEvent->getStartQTime().toString("hh:mm:ss.zzz");
-         case 1:
-             return currentEvent->getEndQTime().toString("hh:mm:ss.zzz");
-         case 2:
-             return currentEvent->getQInterval().toString("hh:mm:ss.zzz");
-         case 3:
-             return currentEvent->getEventText();
-         default:
-             return QVariant();
-         }
-    }
-    else
-        return QVariant();
-}
 
 
 void EventModel::parseSRT()
@@ -332,13 +381,12 @@ void EventModel::selectCurrentEvent(int currentTime)
     emit eventSelectionChanged(selectedEvent);
 }
 
-
 void EventModel::changeStartTime(int currentTime)
 {
     if (selectedEvent < 0)
         return;
 
-    QModelIndex id = index(selectedEvent, 0, QModelIndex());
+    QModelIndex id = index(selectedEvent, VideoEvent::StartTimeField, QModelIndex());
     setData(id, currentTime, Qt::EditRole);
 }
 
@@ -347,7 +395,7 @@ void EventModel::changeEndTime(int currentTime)
     if (selectedEvent < 0)
         return;
 
-    QModelIndex id = index(selectedEvent, 1, QModelIndex());
+    QModelIndex id = index(selectedEvent, VideoEvent::EndTimeField, QModelIndex());
     setData(id, currentTime, Qt::EditRole);
 }
 
@@ -356,6 +404,11 @@ void EventModel::changeEventText(QString newText)
     if (selectedEvent < 0)
         return;
 
-    QModelIndex id = index(selectedEvent, 2, QModelIndex());
+    QModelIndex id = index(selectedEvent, VideoEvent::EventTextField, QModelIndex());
     setData(id, newText, Qt::EditRole);
+}
+
+int EventModel::rowChangedFrom(int originalRow)
+{
+    return listOfChangedRow.indexOf(originalRow);
 }

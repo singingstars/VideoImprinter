@@ -42,6 +42,7 @@ signals:
 //    void eventEnded();
 
 protected:
+    bool eventFilter(QObject *obj, QEvent *ev);
     void keyPressEvent(QKeyEvent *event);
     void keyPressJumpForward(QKeyEvent *event);
     void keyPressJumpBackward(QKeyEvent *event);

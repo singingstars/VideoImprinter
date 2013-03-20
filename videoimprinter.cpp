@@ -11,6 +11,7 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     QWidget *centralW = new QWidget(this);
 
     eventeditor = new EventEditor(this);
+    eventeditor->installEventFilter(this);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(eventeditor);
@@ -29,6 +30,10 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     dock->setWidget(videoplayer);
     addDockWidget(Qt::TopDockWidgetArea, dock);
 
+    connect(eventeditor, SIGNAL(timeDoubleClicked(int))
+            , videoplayer, SLOT(setPosition(int)));
+//    connect(videoplayer, SIGNAL(positionChanged(qint64))
+//            , eventeditor, SLOT(scrollToTime(int)));
 }
 
 VideoImprinter::~VideoImprinter()
@@ -91,6 +96,42 @@ void VideoImprinter::changeEventText(QString newText)
     eventeditor->changeEventText(newText);
 }
 
+bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (ev->type() == QEvent::KeyPress)
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
+
+        switch(keyEvent->key())
+        {
+        case Qt::Key_Space:
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_0:
+        case Qt::Key_1:
+        case Qt::Key_2:
+        case Qt::Key_3:
+        case Qt::Key_4:
+        case Qt::Key_5:
+        case Qt::Key_6:
+        case Qt::Key_7:
+        case Qt::Key_8:
+        case Qt::Key_9:
+        case Qt::Key_BracketLeft:
+        case Qt::Key_BracketRight:
+        case Qt::Key_P:
+        case Qt::Key_Semicolon:
+        case Qt::Key_Apostrophe:
+            return false;
+        default:
+            return QObject::eventFilter(obj, ev);
+        }
+    } else {
+        // standard event processing
+        return QObject::eventFilter(obj, ev);
+    }
+}
+
 void VideoImprinter::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
@@ -105,6 +146,12 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Right:
         this->keyPressJumpForward(event);
         break;
+//    case Qt::Key_Down:
+//        videoplayer->speedDown();
+//        break;
+//    case Qt::Key_Up:
+//        videoplayer->speedUp();
+//        break;
 
     // event controls/modifiers
     case Qt::Key_0:

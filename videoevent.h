@@ -15,9 +15,17 @@ class VideoEvent : public QObject
 {
     Q_OBJECT
 public:
+
     VideoEvent(QObject *parent = 0);
     VideoEvent(int startTime, int endTime, QString eventText, QObject *parent = 0);
     ~VideoEvent();
+
+    // data field id, must begin with 0
+    enum fields {StartTimeField = 0
+                 , EndTimeField = 1
+                 , IntervalField = 2
+                 , EventTextField = 3
+                 , numOfFields = 4};
 
     int getStartTime(void) const;
     int getEndTime(void) const;

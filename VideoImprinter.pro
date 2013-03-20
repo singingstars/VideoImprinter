@@ -18,10 +18,12 @@ SOURCES += main.cpp\
     videoplayer.cpp \
     eventeditor.cpp \
     eventmodel.cpp \
-    videoevent.cpp
+    videoevent.cpp \
+    videoeventdelegate.cpp
 
 HEADERS  += videoimprinter.h \
     videoplayer.h \
     eventeditor.h \
     eventmodel.h \
-    videoevent.h
+    videoevent.h \
+    videoeventdelegate.h

@@ -10,6 +10,7 @@
 
 
 #include "eventmodel.h"
+//#include "videoeventdelegate.h"
 
 /**
  * @brief The EventEditor class is a 'view' for displaying video events.
@@ -35,19 +36,24 @@ public:
      void changeEventText(QString newText);
 
 signals:
-     void eventAdded(int time);
+     void eventAdded(int row);
+     void timeDoubleClicked(int time);
     
 public slots:
-     void focusEvent(int currentTime);
+     void scrollToTime(int currentTime);
+     void scrollToTime(qint64 currentTime);
+     void scrollToRow(int row);
      void selectPreviousEvent();
      void selectNextEvent();
      void selectCurrentEvent(int currentTime);
+     void processDoubleClick(QModelIndex index);
 
 //     void outputDebug();
 
 private:
     QTableView *videoEventTable;
     EventModel *videoEventModel;
+//    VideoEventDelegate *videoEventDelegate;
 
 //    QLabel *editorDebug;
 };
