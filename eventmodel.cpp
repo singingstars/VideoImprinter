@@ -1,5 +1,10 @@
+#include <QRegExp>
 #include <QtAlgorithms>
 #include <QModelIndex>
+#include <QFile>
+#include <QTextStream>
+#include <QTime>
+#include <QStringList>
 
 #include "eventmodel.h"
 
@@ -342,14 +347,6 @@ int EventModel::getSelectedEvent()
     return selectedEvent;
 }
 
-
-
-void EventModel::parseSRT()
-{
-    //TODO
-}
-
-
 void EventModel::selectPreviousEvent()
 {
     if (selectedEvent < 0)
@@ -411,4 +408,72 @@ void EventModel::changeEventText(QString newText)
 int EventModel::rowChangedFrom(int originalRow)
 {
     return listOfChangedRow.indexOf(originalRow);
+}
+
+/**
+ * @brief EventModel::readInSrtFile
+ * @param filename
+ * Reads in local .srt file to a event list. Only one line of text is read.
+ */
+QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
+{
+    QList<VideoEvent *> listOfVideoEvents;
+
+    QRegExp rxFilename("\\.srt$", Qt::CaseInsensitive);
+    if (!rxFilename.exactMatch(filename))
+        return listOfVideoEvents;
+
+    if (!QFile::exists(filename))
+        return listOfVideoEvents;
+
+    QFile srtFile(filename);
+    if (!srtFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        return listOfVideoEvents;
+
+    QRegExp rxTimeLine("^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}");
+    QRegExp rxStartEndTimeSep(" --> ");
+    QRegExp rxTimeSep("[:,]");
+
+    QTextStream in(&srtFile);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+
+        // Go through lines, until finding the time line
+        while (!line.contains(rxTimeLine))
+        {
+            if (in.atEnd())
+                break;
+            else
+                line = in.readLine();
+        }
+
+        QStringList srtTimeStringList = line.split(rxStartEndTimeSep);
+
+        QStringList timeStringList = srtTimeStringList.at(0).split(rxTimeSep);
+        QTime startQTime = QTime(timeStringList.at(0).toInt(), timeStringList.at(1).toInt()
+                           , timeStringList.at(2).toInt(), timeStringList.at(3).toInt());
+
+        timeStringList = srtTimeStringList.at(1).split(rxTimeSep);
+        QTime endQTime = QTime(timeStringList.at(0).toInt(), timeStringList.at(1).toInt()
+                           , timeStringList.at(2).toInt(), timeStringList.at(3).toInt());
+
+        QString eventText;
+        if (!in.atEnd())
+        {
+            eventText = in.readLine();
+
+            if (eventText.isEmpty())
+                eventText = QString("");
+
+            VideoEvent *ve = new VideoEvent();
+            ve->setEndTime(endQTime);
+            ve->setStartTime(startQTime);
+            ve->setEventText(eventText);;
+
+            listOfVideoEvents.append(ve);
+        }
+    }
+
+    return listOfVideoEvents;
 }

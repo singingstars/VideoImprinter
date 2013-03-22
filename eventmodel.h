@@ -43,6 +43,8 @@ public:
 
     int rowChangedFrom(int originalRow);
 
+    static QList<VideoEvent *> readInSrtFile(QString filename);
+
 public slots:
     void selectPreviousEvent();
     void selectNextEvent();
@@ -59,8 +61,6 @@ private:
 
     // is a selected row
     int selectedEvent;
-
-    void parseSRT();
 
 };
 

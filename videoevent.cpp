@@ -12,6 +12,13 @@ VideoEvent::VideoEvent(QObject *parent)
 VideoEvent::VideoEvent(int startTime, int endTime, QString eventText, QObject *parent)
     : QObject(parent)
 {
+    if (startTime > endTime)
+    {
+        int time = endTime;
+        endTime = startTime;
+        startTime = time;
+    }
+
     this->startTime = startTime;
     this->endTime = endTime;
     this->eventText = eventText;
@@ -59,7 +66,7 @@ QTime VideoEvent::getQInterval() const
 void VideoEvent::setStartTime(int time)
 {
     if (time < endTime)
-        this->startTime = time;
+        startTime = time;
     else
     {
         startTime = endTime;
@@ -70,7 +77,7 @@ void VideoEvent::setStartTime(int time)
 void VideoEvent::setEndTime(int time)
 {
     if (time > startTime)
-        this->endTime = time;
+        endTime = time;
     else
     {
         endTime = startTime;

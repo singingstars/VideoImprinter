@@ -159,12 +159,17 @@ void VideoPlayer::updateTime()
         msec = len;
 
         QTime stopTime(hour%60, min%60, sec%60, msec%1000);
-        QString timeFormat = "m:ss:zzz";
+        QString playTimeFormat = "m:ss.zzz";
         if (hour > 0)
-            timeFormat = "h:mm:ss:zzz";
-        timeString = playTime.toString(timeFormat);
+            playTimeFormat = "h:mm:ss.zzz";
+
+        QString stopTimeFormat = "m:ss";
+        if (hour > 0)
+            stopTimeFormat = "h:mm:ss";
+
+        timeString = playTime.toString(playTimeFormat);
         if (len)
-            timeString += " / " + stopTime.toString(timeFormat);
+            timeString += " / " + stopTime.toString(stopTimeFormat);
     }
     timeLabel->setText(timeString);
 }
