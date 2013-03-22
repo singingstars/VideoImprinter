@@ -8,6 +8,9 @@ EventEditor::EventEditor(QWidget *parent) :
     QWidget(parent)
 {
     QList<VideoEvent *> eventList;
+
+    eventList = EventModel::readInSrtFile("e:\\play.qt\\VItestResource\\20120322-CH5-03.srt");
+
     videoEventModel = new EventModel(eventList, parent);
 
 //    videoEventDelegate = new VideoEventDelegate(this);
@@ -20,6 +23,8 @@ EventEditor::EventEditor(QWidget *parent) :
 
     videoEventTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     videoEventTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    warnDuplicates();
 
     // some sample fixture data
 //    QString text1 = "latency";
@@ -58,10 +63,13 @@ EventEditor::EventEditor(QWidget *parent) :
     setLayout(layout);
 
     connect(this, SIGNAL(eventAdded(int)), this, SLOT(scrollToRow(int)));
+    connect(this, SIGNAL(eventAdded(int)), this, SLOT(warnDuplicates()));
     connect(videoEventModel, SIGNAL(eventSelectionChanged(int))
             , videoEventTable, SLOT(selectRow(int)));
     connect(videoEventTable, SIGNAL(doubleClicked(QModelIndex))
             , this, SLOT(processDoubleClick(QModelIndex)));
+    connect(this, SIGNAL(duplicatesDetected(QList<int>))
+            , videoEventModel, SLOT(highlightRows(QList<int>)));
 }
 
 EventEditor::~EventEditor()
@@ -69,35 +77,34 @@ EventEditor::~EventEditor()
 
 }
 
-bool EventEditor::addEvent(VideoEvent *ve)
-{
-    if (!(videoEventModel->isEventDuplicate(ve)))
-    {
-        videoEventModel->insertRows(0, 1, QModelIndex());
+void EventEditor::addEvent(VideoEvent *ve)
+{// duplication is highlighted to notify the user
+    videoEventModel->insertRows(0, 1, QModelIndex());
 
-        // must set end time first; otherwise start time > end time, will be swaped
-        QModelIndex index;
-        index = videoEventModel->index(0, VideoEvent::EndTimeField, QModelIndex());
-        videoEventModel->setData(index, ve->getEndTime(), Qt::EditRole);
+    // must set end time first; otherwise start time > end time, will be swaped
+    QModelIndex index;
+    index = videoEventModel->index(0, VideoEvent::EndTimeField, QModelIndex());
+    videoEventModel->setData(index, ve->getEndTime(), Qt::EditRole);
 
-        index = videoEventModel->index(0, VideoEvent::StartTimeField, QModelIndex());
-        videoEventModel->setData(index, ve->getStartTime(), Qt::EditRole);
+    index = videoEventModel->index(0, VideoEvent::StartTimeField, QModelIndex());
+    videoEventModel->setData(index, ve->getStartTime(), Qt::EditRole);
 
-        index = videoEventModel->index(0, VideoEvent::EventTextField, QModelIndex());
-        videoEventModel->setData(index, ve->getEventText(), Qt::EditRole);
+    index = videoEventModel->index(0, VideoEvent::EventTextField, QModelIndex());
+    videoEventModel->setData(index, ve->getEventText(), Qt::EditRole);
 
-        videoEventModel->sort();
+    videoEventModel->sort();
 
-        emit eventAdded(videoEventModel->rowChangedFrom(0));
-        return true;
-    } //TODO: handle duplicate
-
-    return false;
+    emit eventAdded(videoEventModel->rowChangedFrom(0));
 }
 
 void EventEditor::sortEvents()
 {
+    videoEventModel->sort();
+}
 
+void EventEditor::warnDuplicates()
+{
+    videoEventModel->warnDuplicates();
 }
 
 void EventEditor::changeStartTime(int currentTime)

@@ -116,46 +116,18 @@ bool VideoEvent::operator<(const VideoEvent & other)
     return false;
 }
 
-//bool VideoEvent::lessThan(const VideoEvent *left, const VideoEvent *right)
-//{
-//    if (left->getStartTime() < right->getStartTime())
-//    {
-//        return true;
-//    }
-//    else if (left->getStartTime() == right->getStartTime())
-//    {
-//        if (left->getEndTime() < right->getEndTime())
-//        {
-//            return true;
-//        }
-//    }
-//    return false;
-//}
-
-//bool VideoEvent::greaterThan(const VideoEvent *left, const VideoEvent *right)
-//{
-//    return !( VideoEvent::lessThan(left, right) );
-//}
-
 bool VideoEvent::operator==(const VideoEvent &other)
 {
-    // time has overlap AND text equals
-    // time overlap = otherStartTime within this time duration OR
-    //                otherEndTime within this time duration
-    if ( ( this->contains(other.getStartTime()) || this->contains(other.getEndTime()) )
-          && (other.getEventText() == eventText)
-        )
+    // text must equal
+    if (QString::compare(eventText, other.getEventText(), Qt::CaseInsensitive) != 0)
+        return false;
+
+    // time has overlap
+    // ref. http://stackoverflow.com/questions/143552/comparing-date-ranges
+    if ((startTime < other.getEndTime()) && (endTime > other.getStartTime()))
         return true;
-
-    return false;
-}
-
-bool VideoEvent::contains(int time)
-{
-    if ((time >= startTime) && (time <= endTime))
-        return true;
-
-    return false;
+    else
+        return false;
 }
 
 /**

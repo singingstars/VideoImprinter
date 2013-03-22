@@ -43,16 +43,9 @@ public:
 
     // for sorting
     bool operator<(const VideoEvent & other);
-    // for sorting, pointer version
-//    bool lessThan(const VideoEvent *left, const VideoEvent *right);
-//    bool greaterThan(const VideoEvent *left, const VideoEvent *right);
 
     // for detecting duplicate
     bool operator==(const VideoEvent & other);
-
-    // if time falls within start and end time
-    bool contains(int time);
-
 
     static QTime QTimeFromMs(int totalmsecs);
     static QTime QTimeFromMs(qint64 totalmsecs);

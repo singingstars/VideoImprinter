@@ -43,21 +43,29 @@ public:
 
     int rowChangedFrom(int originalRow);
 
+    void warnDuplicates();
+
     static QList<VideoEvent *> readInSrtFile(QString filename);
+    static void writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename);
+    static QList<int> detectDuplicates(QList<VideoEvent *> listOfVideoEvents);
 
 public slots:
     void selectPreviousEvent();
     void selectNextEvent();
     void selectCurrentEvent(int currentTime);
+    void highlightRows(QList<int> rows);
 
 signals:
     void eventSelectionChanged(int row);
+    void duplicateDetected(QList<int>);
 
 private:
     //TODO: maybe a custom list type like QStringList?
     QList<VideoEvent *> listOfEvents;
 
     QList<int> listOfChangedRow;
+
+    QList<int> listOfHighlightedRow;
 
     // is a selected row
     int selectedEvent;

@@ -7,6 +7,7 @@
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 #include <QLabel>
+#include <QList>
 
 
 #include "eventmodel.h"
@@ -27,7 +28,7 @@ public:
      EventEditor(QWidget *parent = 0);
     ~EventEditor();
     
-     bool addEvent(VideoEvent *ve);
+     void addEvent(VideoEvent *ve);
      void sortEvents();
 
      // modify selected video event
@@ -47,6 +48,7 @@ public slots:
      void selectNextEvent();
      void selectCurrentEvent(int currentTime);
      void processDoubleClick(QModelIndex index);
+     void warnDuplicates();
 
 //     void outputDebug();
 

@@ -5,6 +5,8 @@
 #include <QTextStream>
 #include <QTime>
 #include <QStringList>
+#include <QBrush>
+#include <QColor>
 
 #include "eventmodel.h"
 
@@ -52,6 +54,9 @@ EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
     {
         listOfChangedRow.append(i);
     }
+
+    connect(this, SIGNAL(duplicateDetected(QList<int>))
+            ,this, SLOT(highlightRows(QList<int>)));
 }
 
 int EventModel::columnCount(const QModelIndex &parent) const
@@ -108,6 +113,16 @@ QVariant EventModel::data(const QModelIndex &index, int role) const
         default:
             return QVariant();
         }
+    }
+
+    if (role == Qt::BackgroundRole)
+    {
+        if (listOfHighlightedRow.contains(index.row()))
+        {
+            return QBrush(QColor(Qt::red));
+        }
+
+        return QVariant();
     }
 
     return QVariant();
@@ -378,6 +393,17 @@ void EventModel::selectCurrentEvent(int currentTime)
     emit eventSelectionChanged(selectedEvent);
 }
 
+void EventModel::highlightRows(QList<int> rows)
+{
+    listOfHighlightedRow = rows;
+
+    foreach (int row, rows)
+    {
+        emit dataChanged(index(row, 0, QModelIndex())
+                         , index(row, columnCount()-1, QModelIndex()));
+    }
+}
+
 void EventModel::changeStartTime(int currentTime)
 {
     if (selectedEvent < 0)
@@ -410,6 +436,13 @@ int EventModel::rowChangedFrom(int originalRow)
     return listOfChangedRow.indexOf(originalRow);
 }
 
+void EventModel::warnDuplicates()
+{
+    QList<int> dups = EventModel::detectDuplicates(listOfEvents);
+
+    emit duplicateDetected(dups);
+}
+
 /**
  * @brief EventModel::readInSrtFile
  * @param filename
@@ -419,7 +452,7 @@ QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
 {
     QList<VideoEvent *> listOfVideoEvents;
 
-    QRegExp rxFilename("\\.srt$", Qt::CaseInsensitive);
+    QRegExp rxFilename(".*[.]srt$", Qt::CaseInsensitive);
     if (!rxFilename.exactMatch(filename))
         return listOfVideoEvents;
 
@@ -476,4 +509,79 @@ QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
     }
 
     return listOfVideoEvents;
+}
+
+void EventModel::writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename)
+{//TODO: test this function
+    if (listOfVideoEvents.size() == 0)
+        return;
+
+    QFile srtFile(filename);
+    if (!srtFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&srtFile);
+
+    for (int i=0; i < listOfVideoEvents.size(); i++)
+    {
+        // ID at 1st line
+        out << i+1 << endl;
+
+        // Time at 2nd line
+        out << listOfVideoEvents.at(i)->getStartQTime().toString("HH:mm:ss,zzz")
+            << " --> "
+            << listOfVideoEvents.at(i)->getEndQTime().toString("HH:mm:ss,zzz")
+            << endl;
+
+        // Event text (subtitle, generally speaking) at 3rd line
+        out << listOfVideoEvents.at(i)->getEventText() << endl;
+
+    }
+
+    out << endl;
+
+}
+
+/**
+ * @brief EventModel::detectDuplicates
+ * @param listOfVideoEvents
+ * @return Returns a list of duplicate ids (rows)
+ */
+QList<int> EventModel::detectDuplicates(QList<VideoEvent *> listOfVideoEvents)
+{// qlist.count and qlist.indexof requires deferenced variables, not pointers, so not using them
+
+    QList<int> listOfDuplicateIds;
+    listOfDuplicateIds.reserve(listOfVideoEvents.size());
+
+    // check for duplicates one by one
+    for (int currentId = 0; currentId < listOfVideoEvents.size(); currentId++)
+    {
+        // if already in the list, skip all below to next id
+        if (listOfDuplicateIds.contains(currentId))
+                continue;
+
+        // if current has duplicate then it also counts, mark it false first
+        bool isCurrentHasDuplicate = false;
+
+        VideoEvent *ve = listOfVideoEvents.at(currentId);
+
+        // search for the rest of list one by one
+        for (int iDup = currentId + 1; iDup < listOfVideoEvents.size(); iDup++)
+        {
+            VideoEvent *veDup = listOfVideoEvents.at(iDup);
+
+            // operator== only get called for dereferenced variables
+            if (*ve == *veDup)
+            {
+                isCurrentHasDuplicate = true;
+                listOfDuplicateIds.append(iDup);
+            }
+        }
+
+        if (isCurrentHasDuplicate)
+            listOfDuplicateIds.append(currentId);
+
+    }
+
+    return listOfDuplicateIds;
 }
