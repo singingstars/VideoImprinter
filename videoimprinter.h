@@ -24,7 +24,12 @@ public:
     VideoImprinter(QWidget *parent = 0);
     ~VideoImprinter();
 
+    void saveFile();
+    void loadFile();
+
 public slots:
+
+    // add a video event
     void toggleEvent(int iEvent);
     void beginEvent(int iEvent);
     void endEvent(int iEvent);
@@ -37,6 +42,8 @@ public slots:
     void changeEndTime(int currentTime);
     void changeEventText(QString newText);
 
+    void sortEvents();
+
 signals:
 //    void eventStarted();
 //    void eventEnded();
@@ -46,7 +53,8 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyPressJumpForward(QKeyEvent *event);
     void keyPressJumpBackward(QKeyEvent *event);
-    void keyPressChangeEventText(QKeyEvent *event);
+    void keyPressAddEvent(QKeyEvent *event);
+    void keyPressDeleteEvent(QKeyEvent *event);
 
 private:
     enum {numOfEventTypes = 10};

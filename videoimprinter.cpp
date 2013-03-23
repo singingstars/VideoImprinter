@@ -11,7 +11,6 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     QWidget *centralW = new QWidget(this);
 
     eventeditor = new EventEditor(this);
-    eventeditor->installEventFilter(this);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(eventeditor);
@@ -22,13 +21,27 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     QDockWidget *dock = new QDockWidget(tr("Video Player"), this);
     videoplayer = new VideoPlayer(dock);
     for (int i=0; i<numOfEventTypes; i++)
-    {
+    {//TODO: setup label with app settings
         eventLabelText[i] = QString("[%1]").arg(i);
         videoplayer->setEventLabel(i, eventLabelText[i]);
         isEventGoing[i] = false;
     }
     dock->setWidget(videoplayer);
     addDockWidget(Qt::TopDockWidgetArea, dock);
+
+    eventeditor->installEventFilter(this);
+    QList<QWidget*> widgets = eventeditor->findChildren<QWidget*>();
+    foreach(QWidget *widget, widgets)
+    {
+        widget->installEventFilter(this);
+    }
+
+    videoplayer->installEventFilter(this);
+    widgets = videoplayer->findChildren<QWidget*>();
+    foreach(QWidget *widget, widgets)
+    {
+        widget->installEventFilter(this);
+    }
 
     connect(eventeditor, SIGNAL(timeDoubleClicked(int))
             , videoplayer, SLOT(setPosition(int)));
@@ -39,6 +52,15 @@ VideoImprinter::VideoImprinter(QWidget *parent)
 VideoImprinter::~VideoImprinter()
 {
     
+}
+
+void VideoImprinter::saveFile()
+{//TODO: only prototype
+
+}
+
+void VideoImprinter::loadFile()
+{
 }
 
 void VideoImprinter::toggleEvent(int iEvent)
@@ -96,6 +118,11 @@ void VideoImprinter::changeEventText(QString newText)
     eventeditor->changeEventText(newText);
 }
 
+void VideoImprinter::sortEvents()
+{
+    eventeditor->sortEvents();
+}
+
 bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
 {
     if (ev->type() == QEvent::KeyPress)
@@ -104,9 +131,12 @@ bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
 
         switch(keyEvent->key())
         {
+        // video control
         case Qt::Key_Space:
         case Qt::Key_Left:
         case Qt::Key_Right:
+
+        // adding video event
         case Qt::Key_0:
         case Qt::Key_1:
         case Qt::Key_2:
@@ -117,12 +147,24 @@ bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
         case Qt::Key_7:
         case Qt::Key_8:
         case Qt::Key_9:
+
+        // select video event from list
         case Qt::Key_BracketLeft:
         case Qt::Key_BracketRight:
         case Qt::Key_P:
+
+        // editing video event
         case Qt::Key_Semicolon:
         case Qt::Key_Apostrophe:
+        case Qt::Key_Delete:
+        case Qt::Key_Enter:
+
+        // save/load file
+        case Qt::Key_S:
+        case Qt::Key_L:
+
             return false;
+
         default:
             return QObject::eventFilter(obj, ev);
         }
@@ -153,87 +195,21 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
 //        videoplayer->speedUp();
 //        break;
 
-    // event controls/modifiers
+    // add video event
     case Qt::Key_0:
-        if (event->modifiers() == Qt::ControlModifier)
-        {
-            this->changeEventText(eventLabelText[0]);
-            break;
-        }
-        this->toggleEvent(0);
-        break;
     case Qt::Key_1:
-        if (event->modifiers() == Qt::ControlModifier)
-        {
-            this->changeEventText(eventLabelText[1]);
-            break;
-        }
-        this->toggleEvent(1);
-        break;
     case Qt::Key_2:
-        if (event->modifiers() == Qt::ControlModifier)
-        {
-            this->changeEventText(eventLabelText[2]);
-            break;
-        }
-        this->toggleEvent(2);
-        break;
     case Qt::Key_3:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[3]);
-            break;
-        }
-        this->toggleEvent(3);
-        break;
     case Qt::Key_4:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[4]);
-            break;
-        }
-        this->toggleEvent(4);
-        break;
     case Qt::Key_5:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[5]);
-            break;
-        }
-        this->toggleEvent(5);
-        break;
     case Qt::Key_6:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[6]);
-            break;
-        }
-        this->toggleEvent(6);
-        break;
     case Qt::Key_7:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[7]);
-            break;
-        }
-        this->toggleEvent(7);
-        break;
     case Qt::Key_8:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[8]);
-            break;
-        }
-        this->toggleEvent(8);
-        break;
     case Qt::Key_9:
-        if (event->modifiers() == Qt::ShiftModifier)
-        {
-            this->changeEventText(eventLabelText[9]);
-            break;
-        }
-        this->toggleEvent(9);
+        this->keyPressAddEvent(event);
         break;
+
+    // select/modify video event
     case Qt::Key_BracketLeft:
         this->selectPreviousEvent();
         break;
@@ -249,6 +225,21 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Apostrophe:
         this->changeEndTime(videoplayer->getPosition());
         break;
+    case Qt::Key_Delete:
+        this->keyPressDeleteEvent(event);
+        break;
+    case Qt::Key_Enter:
+        this->sortEvents();
+        break;
+
+    // save/load file
+    case Qt::Key_S:
+        this->saveFile();
+        break;
+    case Qt::Key_L:
+        this->loadFile();
+        break;
+
     default:
         QMainWindow::keyPressEvent(event);
     }
@@ -290,4 +281,66 @@ void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
     default:
         return;
     }
+}
+
+
+void VideoImprinter::keyPressAddEvent(QKeyEvent *event)
+{// add event, or change selected event text
+
+    int i = -1;
+
+    switch(event->key())
+    {
+    case Qt::Key_0:
+        i = 0;
+        break;
+    case Qt::Key_1:
+        i = 1;
+        break;
+    case Qt::Key_2:
+        i = 2;
+        break;
+    case Qt::Key_3:
+        i = 3;
+        break;
+    case Qt::Key_4:
+        i = 4;
+        break;
+    case Qt::Key_5:
+        i = 5;
+        break;
+    case Qt::Key_6:
+        i = 6;
+        break;
+    case Qt::Key_7:
+        i = 7;
+        break;
+    case Qt::Key_8:
+        i = 8;
+        break;
+    case Qt::Key_9:
+        i = 9;
+        break;
+    default:
+        return;
+    }
+
+    if (event->modifiers() == Qt::ControlModifier)
+    {
+        this->changeEventText(eventLabelText[i]);
+    }
+
+    this->toggleEvent(i);
+
+    return;
+}
+
+void VideoImprinter::keyPressDeleteEvent(QKeyEvent *event)
+{
+    if ((event->key() == Qt::Key_Delete) && (event->modifiers() == Qt::ControlModifier))
+    {
+        eventeditor->deleteEvent();
+    }
+
+    return;
 }

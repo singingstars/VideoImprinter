@@ -13,3 +13,4 @@ TODO
 * automatic save to .srt file whenever event changes
 * automatic select/focus the line with current video position
 * video playback filter (e.g. to gray)
+* selected event can be deleted

@@ -34,6 +34,7 @@ public:
     bool isEventDuplicate(VideoEvent *ve ) const;
     void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
+    // row selection
     int getCurrentEventRow(int currentTime);
     QModelIndex getCurrentEventId(int currentTime);
     int getSelectedEvent();
@@ -41,21 +42,24 @@ public:
     void changeEndTime(int currentTime);
     void changeEventText(QString newText);
 
+    // row after sorting
     int rowChangedFrom(int originalRow);
-
-    void warnDuplicates();
 
     static QList<VideoEvent *> readInSrtFile(QString filename);
     static void writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename);
     static QList<int> detectDuplicates(QList<VideoEvent *> listOfVideoEvents);
 
 public slots:
+    void selectEvent(int row);
+    void selectEvent(QModelIndex id);
     void selectPreviousEvent();
     void selectNextEvent();
     void selectCurrentEvent(int currentTime);
     void highlightRows(QList<int> rows);
+    void warnDuplicates();
 
 signals:
+    void eventChanged(int row);
     void eventSelectionChanged(int row);
     void duplicateDetected(QList<int>);
 
@@ -63,6 +67,8 @@ private:
     //TODO: maybe a custom list type like QStringList?
     QList<VideoEvent *> listOfEvents;
 
+    // map rows before and after sorting
+    // index = after sorting (now), value = before sorting
     QList<int> listOfChangedRow;
 
     QList<int> listOfHighlightedRow;

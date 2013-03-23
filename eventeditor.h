@@ -30,6 +30,7 @@ public:
     
      void addEvent(VideoEvent *ve);
      void sortEvents();
+     void deleteEvent();
 
      // modify selected video event
      void changeStartTime(int currentTime);
@@ -38,12 +39,14 @@ public:
 
 signals:
      void eventAdded(int row);
+     void eventDeleted(int row);
      void timeDoubleClicked(int time);
     
 public slots:
      void scrollToTime(int currentTime);
      void scrollToTime(qint64 currentTime);
      void scrollToRow(int row);
+     void selectRow(int row);
      void selectPreviousEvent();
      void selectNextEvent();
      void selectCurrentEvent(int currentTime);

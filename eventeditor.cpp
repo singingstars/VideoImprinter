@@ -36,18 +36,18 @@ EventEditor::EventEditor(QWidget *parent) :
 
     // test add event from model
    // QModelIndex index;
-    QString textadd = "added";
-    VideoEvent *added = new VideoEvent(30489, 30489, textadd);
-    this->addEvent(added);
+//    QString textadd = "added";
+//    VideoEvent *added = new VideoEvent(30489, 30489, textadd);
+//    this->addEvent(added);
 
 //    videoEventModel->sort();
 
 //    index = videoEventModel->index(3,0,QModelIndex());
 //    videoEventModel->setData(index, 30382, Qt::EditRole);
 
-    int ss = VideoEvent::msFromQTime(VideoEvent::QTimeFromMs(52567976));
-    VideoEvent *added2 = new VideoEvent(45246, ss, textadd);
-    this->addEvent(added2);
+//    int ss = VideoEvent::msFromQTime(VideoEvent::QTimeFromMs(52567976));
+//    VideoEvent *added2 = new VideoEvent(45246, ss, textadd);
+//    this->addEvent(added2);
 //    videoEventModel->sort(Qt::DescendingOrder);
 
 
@@ -62,14 +62,18 @@ EventEditor::EventEditor(QWidget *parent) :
 
     setLayout(layout);
 
+    connect(this, SIGNAL(eventAdded(int)), this, SLOT(selectRow(int)));
     connect(this, SIGNAL(eventAdded(int)), this, SLOT(scrollToRow(int)));
     connect(this, SIGNAL(eventAdded(int)), this, SLOT(warnDuplicates()));
+    connect(this, SIGNAL(eventDeleted(int)), this, SLOT(selectRow(int)));
+    connect(this, SIGNAL(eventDeleted(int)), this, SLOT(warnDuplicates()));
+
     connect(videoEventModel, SIGNAL(eventSelectionChanged(int))
             , videoEventTable, SLOT(selectRow(int)));
     connect(videoEventTable, SIGNAL(doubleClicked(QModelIndex))
             , this, SLOT(processDoubleClick(QModelIndex)));
-    connect(this, SIGNAL(duplicatesDetected(QList<int>))
-            , videoEventModel, SLOT(highlightRows(QList<int>)));
+    connect(videoEventTable, SIGNAL(activated(QModelIndex))
+            , videoEventModel, SLOT(selectEvent(QModelIndex)));
 }
 
 EventEditor::~EventEditor()
@@ -100,6 +104,18 @@ void EventEditor::addEvent(VideoEvent *ve)
 void EventEditor::sortEvents()
 {
     videoEventModel->sort();
+}
+
+void EventEditor::deleteEvent()
+{
+    int selectedRow = videoEventModel->getSelectedEvent();
+
+    if (selectedRow == -1)
+        return;
+
+    videoEventModel->removeRows(selectedRow, 1, QModelIndex());
+
+    emit eventDeleted(selectedRow);
 }
 
 void EventEditor::warnDuplicates()
@@ -145,6 +161,11 @@ void EventEditor::scrollToRow(int row)
 {
     QModelIndex idRow = videoEventModel->index(row, 0, QModelIndex());
     videoEventTable->scrollTo(idRow);
+}
+
+void EventEditor::selectRow(int row)
+{
+    videoEventModel->selectEvent(row);
 }
 
 void EventEditor::selectPreviousEvent()

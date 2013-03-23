@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QBrush>
 #include <QColor>
+#include <QSet>
 
 #include "eventmodel.h"
 
@@ -48,6 +49,8 @@ EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
 {
     this->listOfEvents = eventList;
 
+    listOfHighlightedRow.reserve(rowCount());
+
     listOfChangedRow.reserve(rowCount());
 
     for (int i=0; i<rowCount(); i++)
@@ -57,6 +60,7 @@ EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
 
     connect(this, SIGNAL(duplicateDetected(QList<int>))
             ,this, SLOT(highlightRows(QList<int>)));
+    connect(this, SIGNAL(eventChanged(int)), this, SLOT(warnDuplicates()));
 }
 
 int EventModel::columnCount(const QModelIndex &parent) const
@@ -311,6 +315,20 @@ void EventModel::sort(Qt::SortOrder order)
     changePersistentIndexList(changedPersistentIndexesFrom, changedPersistentIndexesTo);
 
     emit(layoutChanged());
+
+    // highlights also changed
+    QList<int> newHighlights;
+    newHighlights.reserve(listOfHighlightedRow.size());
+
+    foreach (int r, listOfHighlightedRow)
+    {
+        newHighlights.append(rowChangedFrom(r));
+    }
+
+    highlightRows(newHighlights);
+
+    // selection also changed
+    selectEvent(rowChangedFrom(selectedEvent));
 }
 
 int EventModel::getCurrentEventRow(int currentTime)
@@ -362,6 +380,30 @@ int EventModel::getSelectedEvent()
     return selectedEvent;
 }
 
+void EventModel::selectEvent(int row)
+{
+    if (row < 0)
+        return;
+
+    if (row >= rowCount())
+        row = rowCount() - 1;
+
+    selectedEvent = row;
+
+    emit eventSelectionChanged(selectedEvent);
+}
+
+void EventModel::selectEvent(QModelIndex id)
+{
+    if (!id.isValid())
+        return;
+
+    int row = id.row();
+
+    selectEvent(row);
+    emit eventSelectionChanged(selectedEvent);
+}
+
 void EventModel::selectPreviousEvent()
 {
     if (selectedEvent < 0)
@@ -378,8 +420,12 @@ void EventModel::selectNextEvent()
     if (selectedEvent < 0)
         return;
 
-    if (selectedEvent < (rowCount() - 1))
+    if (selectedEvent >= (rowCount() - 1))
+    {
+        selectedEvent = rowCount() - 1;
+    } else {
         selectedEvent++;
+    }
 
     emit eventSelectionChanged(selectedEvent);
 }
@@ -395,13 +441,16 @@ void EventModel::selectCurrentEvent(int currentTime)
 
 void EventModel::highlightRows(QList<int> rows)
 {
+    QSet<int> rowsToChange = listOfHighlightedRow.toSet() + rows.toSet();
+
     listOfHighlightedRow = rows;
 
-    foreach (int row, rows)
+    foreach (int row, rowsToChange)
     {
         emit dataChanged(index(row, 0, QModelIndex())
                          , index(row, columnCount()-1, QModelIndex()));
     }
+//    emit dataChanged(index(0,0,QModelIndex()), index(rowCount()-1, columnCount()-1, QModelIndex()));
 }
 
 void EventModel::changeStartTime(int currentTime)
@@ -411,6 +460,8 @@ void EventModel::changeStartTime(int currentTime)
 
     QModelIndex id = index(selectedEvent, VideoEvent::StartTimeField, QModelIndex());
     setData(id, currentTime, Qt::EditRole);
+
+    emit eventChanged(selectedEvent);
 }
 
 void EventModel::changeEndTime(int currentTime)
@@ -420,6 +471,8 @@ void EventModel::changeEndTime(int currentTime)
 
     QModelIndex id = index(selectedEvent, VideoEvent::EndTimeField, QModelIndex());
     setData(id, currentTime, Qt::EditRole);
+
+    emit eventChanged(selectedEvent);
 }
 
 void EventModel::changeEventText(QString newText)
@@ -429,6 +482,8 @@ void EventModel::changeEventText(QString newText)
 
     QModelIndex id = index(selectedEvent, VideoEvent::EventTextField, QModelIndex());
     setData(id, newText, Qt::EditRole);
+
+    emit eventChanged(selectedEvent);
 }
 
 int EventModel::rowChangedFrom(int originalRow)
@@ -441,6 +496,7 @@ void EventModel::warnDuplicates()
     QList<int> dups = EventModel::detectDuplicates(listOfEvents);
 
     emit duplicateDetected(dups);
+
 }
 
 /**
