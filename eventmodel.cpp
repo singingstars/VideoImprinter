@@ -499,6 +499,11 @@ void EventModel::warnDuplicates()
 
 }
 
+void EventModel::saveCurrentEvents(QString filename)
+{
+    EventModel::writeToSrtFile(listOfEvents, filename);
+}
+
 /**
  * @brief EventModel::readInSrtFile
  * @param filename
@@ -592,6 +597,8 @@ void EventModel::writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString f
         // Event text (subtitle, generally speaking) at 3rd line
         out << listOfVideoEvents.at(i)->getEventText() << endl;
 
+        // Empty line at each end
+        out << endl;
     }
 
     out << endl;

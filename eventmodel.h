@@ -13,6 +13,7 @@
  * Using model-view design pattern in Qt, video events (somewhat similar to subtitles)
  * needs a dedicated model. It holds a list of events, and contain columns representing
  * begin time, end time, interval, and event type (equivalent to subtitle text).
+ * Selection is partly handled in this model, maybe move to view class?
  * It also contains methods to parse .srt file as well as to write to it.
  */
 class EventModel : public QAbstractTableModel
@@ -57,6 +58,7 @@ public slots:
     void selectCurrentEvent(int currentTime);
     void highlightRows(QList<int> rows);
     void warnDuplicates();
+    void saveCurrentEvents(QString filename);
 
 signals:
     void eventChanged(int row);

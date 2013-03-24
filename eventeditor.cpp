@@ -118,6 +118,11 @@ void EventEditor::deleteEvent()
     emit eventDeleted(selectedRow);
 }
 
+void EventEditor::saveEvents(QString filename)
+{
+    videoEventModel->saveCurrentEvents(filename);
+}
+
 void EventEditor::warnDuplicates()
 {
     videoEventModel->warnDuplicates();

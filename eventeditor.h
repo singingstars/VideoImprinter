@@ -32,6 +32,8 @@ public:
      void sortEvents();
      void deleteEvent();
 
+     void saveEvents(QString filename);
+
      // modify selected video event
      void changeStartTime(int currentTime);
      void changeEndTime(int currentTime);

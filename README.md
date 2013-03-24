@@ -7,10 +7,9 @@ TODO
 ----
 
 * modify layout for cleaness and ease of use
-* read in video events from .srt file
 * automatic read in .srt file with same file name as video file, if .srt file exists
-* save video events to .srt file
 * automatic save to .srt file whenever event changes
 * automatic select/focus the line with current video position
 * video playback filter (e.g. to gray)
-* selected event can be deleted
+* menus, actions, toolbar
+* settings dialogue, configure settings

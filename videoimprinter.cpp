@@ -1,5 +1,8 @@
 #include <QDockWidget>
 #include <QBoxLayout>
+#include <QFileDialog>
+#include <QDir>
+#include <QStatusBar>
 
 #include "videoimprinter.h"
 
@@ -20,14 +23,17 @@ VideoImprinter::VideoImprinter(QWidget *parent)
 
     QDockWidget *dock = new QDockWidget(tr("Video Player"), this);
     videoplayer = new VideoPlayer(dock);
+    dock->setWidget(videoplayer);
+    addDockWidget(Qt::TopDockWidgetArea, dock);
+
+    statusBar()->showMessage(tr("Ready"));
+
     for (int i=0; i<numOfEventTypes; i++)
     {//TODO: setup label with app settings
         eventLabelText[i] = QString("[%1]").arg(i);
         videoplayer->setEventLabel(i, eventLabelText[i]);
         isEventGoing[i] = false;
     }
-    dock->setWidget(videoplayer);
-    addDockWidget(Qt::TopDockWidgetArea, dock);
 
     eventeditor->installEventFilter(this);
     QList<QWidget*> widgets = eventeditor->findChildren<QWidget*>();
@@ -56,7 +62,22 @@ VideoImprinter::~VideoImprinter()
 
 void VideoImprinter::saveFile()
 {//TODO: only prototype
+    QFileDialog saveDialog(this, tr("Save Events"));
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDirectory(QDir::homePath());
+    saveDialog.setNameFilter(tr("Subtitle (*.srt)"));
 
+    if (!saveDialog.exec())
+    {
+        statusBar()->showMessage(tr("File Save Canceled."));
+        return;
+    }
+
+    QStringList fileNames;
+    fileNames = saveDialog.selectedFiles();
+
+    eventeditor->saveEvents(fileNames.first());
+    statusBar()->showMessage(tr("File Saved."));
 }
 
 void VideoImprinter::loadFile()
