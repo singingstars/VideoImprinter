@@ -499,9 +499,53 @@ void EventModel::warnDuplicates()
 
 }
 
-void EventModel::saveCurrentEvents(QString filename)
+bool EventModel::saveCurrentEvents(const QString filename)
 {
-    EventModel::writeToSrtFile(listOfEvents, filename);
+    return EventModel::writeToSrtFile(listOfEvents, filename);
+}
+
+void EventModel::newEventsLoaded()
+{
+    selectedEvent = 0;
+
+    QList<int> l;
+    listOfHighlightedRow = l;
+    listOfHighlightedRow.reserve(rowCount());
+
+    listOfChangedRow = l;
+    listOfChangedRow.reserve(rowCount());
+
+    for (int i=0; i<rowCount(); i++)
+    {
+        listOfChangedRow.append(i);
+    }
+
+    warnDuplicates();
+    emit dataChanged(index(0, 0, QModelIndex())
+                     , index(rowCount()-1, columnCount()-1, QModelIndex()));
+}
+
+void EventModel::loadEventList(QList<VideoEvent *> eventList)
+{
+    listOfEvents = eventList;
+
+    selectedEvent = 0;
+
+    QList<int> l;
+    listOfHighlightedRow = l;
+    listOfHighlightedRow.reserve(rowCount());
+
+    listOfChangedRow = l;
+    listOfChangedRow.reserve(rowCount());
+
+    for (int i=0; i<rowCount(); i++)
+    {
+        listOfChangedRow.append(i);
+    }
+
+    warnDuplicates();
+    emit dataChanged(index(0, 0, QModelIndex())
+                     , index(rowCount()-1, columnCount()-1, QModelIndex()));
 }
 
 /**
@@ -572,14 +616,14 @@ QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
     return listOfVideoEvents;
 }
 
-void EventModel::writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename)
-{//TODO: test this function
+bool EventModel::writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename)
+{
     if (listOfVideoEvents.size() == 0)
-        return;
+        return false;
 
     QFile srtFile(filename);
     if (!srtFile.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
+        return false;
 
     QTextStream out(&srtFile);
 
@@ -602,6 +646,7 @@ void EventModel::writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString f
     }
 
     out << endl;
+    return true;
 
 }
 

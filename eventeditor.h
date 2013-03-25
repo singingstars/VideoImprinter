@@ -32,17 +32,21 @@ public:
      void sortEvents();
      void deleteEvent();
 
-     void saveEvents(QString filename);
+     bool saveEvents(QString filename);
+     void loadEvents(QString filename);
 
      // modify selected video event
      void changeStartTime(int currentTime);
      void changeEndTime(int currentTime);
      void changeEventText(QString newText);
 
+     bool isModified();
+
 signals:
      void eventAdded(int row);
      void eventDeleted(int row);
      void timeDoubleClicked(int time);
+     void modificationChanged(bool changed);
     
 public slots:
      void scrollToTime(int currentTime);
@@ -54,6 +58,7 @@ public slots:
      void selectCurrentEvent(int currentTime);
      void processDoubleClick(QModelIndex index);
      void warnDuplicates();
+     void setModified(bool m = true);
 
 //     void outputDebug();
 
@@ -63,6 +68,7 @@ private:
 //    VideoEventDelegate *videoEventDelegate;
 
 //    QLabel *editorDebug;
+    bool modified;
 };
 
 #endif // EVENTEDITOR_H

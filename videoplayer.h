@@ -27,9 +27,12 @@ public:
     int getPosition();
     void highlightEventText(int iLabel, bool isOn);
     void setEventLabel(int iLabel, QString labelText);
+    void setHasMediaFile(bool f = true);
+    bool hasMediaFile();
 
 public slots:
     void openFile();
+    void loadFile(const QString fileName);
     void play();
     void updateTime();
     void jumpTo(int increament);
@@ -42,6 +45,10 @@ private slots:
     void durationChanged(qint64 duration);
     void setPosition(int position);
     void handleError();
+
+signals:
+    void mediaFileStatusChanged(bool);
+    void playToggled();
 
 private:
     enum {numOfLabels = 10, numOfSpeeds = 10};
@@ -58,6 +65,8 @@ private:
     // playback speed levels
     int currentSpeedId;
     qreal speeds[numOfSpeeds];
+
+    bool isFileSet;
 
     void setupEventTextLabels();
 };

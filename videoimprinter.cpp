@@ -3,6 +3,9 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QStatusBar>
+#include <QMessageBox>
+#include <QStringBuilder>
+#include <QFileInfo>
 
 #include "videoimprinter.h"
 
@@ -26,15 +29,24 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     dock->setWidget(videoplayer);
     addDockWidget(Qt::TopDockWidgetArea, dock);
 
-    statusBar()->showMessage(tr("Ready"));
+    createActions();
+    createMenus();
+    createToolBars();
+    createStatusBar();
 
+    readSettings();
+
+//    setCurrentSrtFile(tr(""));
+//    setCurrentVideoFile(tr(""));
+
+    // setup event labels
+    setEventLabels();
     for (int i=0; i<numOfEventTypes; i++)
     {//TODO: setup label with app settings
-        eventLabelText[i] = QString("[%1]").arg(i);
-        videoplayer->setEventLabel(i, eventLabelText[i]);
         isEventGoing[i] = false;
     }
 
+    //TODO: install event filter with help of childEvent
     eventeditor->installEventFilter(this);
     QList<QWidget*> widgets = eventeditor->findChildren<QWidget*>();
     foreach(QWidget *widget, widgets)
@@ -49,39 +61,20 @@ VideoImprinter::VideoImprinter(QWidget *parent)
         widget->installEventFilter(this);
     }
 
+    connect(this, SIGNAL(videoPlayToggled()), videoplayer, SIGNAL(playToggled()));
     connect(eventeditor, SIGNAL(timeDoubleClicked(int))
             , videoplayer, SLOT(setPosition(int)));
 //    connect(videoplayer, SIGNAL(positionChanged(qint64))
 //            , eventeditor, SLOT(scrollToTime(int)));
+    connect(eventeditor, SIGNAL(modificationChanged(bool))
+            , this, SLOT(documentWasModified()));
+
+
 }
 
 VideoImprinter::~VideoImprinter()
 {
     
-}
-
-void VideoImprinter::saveFile()
-{//TODO: only prototype
-    QFileDialog saveDialog(this, tr("Save Events"));
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setDirectory(QDir::homePath());
-    saveDialog.setNameFilter(tr("Subtitle (*.srt)"));
-
-    if (!saveDialog.exec())
-    {
-        statusBar()->showMessage(tr("File Save Canceled."));
-        return;
-    }
-
-    QStringList fileNames;
-    fileNames = saveDialog.selectedFiles();
-
-    eventeditor->saveEvents(fileNames.first());
-    statusBar()->showMessage(tr("File Saved."));
-}
-
-void VideoImprinter::loadFile()
-{
 }
 
 void VideoImprinter::toggleEvent(int iEvent)
@@ -144,6 +137,99 @@ void VideoImprinter::sortEvents()
     eventeditor->sortEvents();
 }
 
+bool VideoImprinter::save()
+{
+    if (currentSrtFile.isEmpty()) {
+        return saveAs();
+    } else {
+        return saveSrtFile(currentSrtFile);
+    }
+}
+
+bool VideoImprinter::saveAs()
+{
+    QFileDialog saveDialog(this, tr("Save Events"));
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setDirectory(QDir::homePath());
+    saveDialog.setNameFilter(tr("Subtitle (*.srt)"));
+
+    saveDialog.exec();
+
+    QStringList fileNames;
+    fileNames = saveDialog.selectedFiles();
+
+    if (fileNames.isEmpty())
+    {
+        statusBar()->showMessage(tr("File Save Canceled."), 2000);
+        return false;
+    }
+
+    if (saveSrtFile(fileNames.first()) )
+    {
+        statusBar()->showMessage(tr("File Saved."), 2000);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void VideoImprinter::openVideo()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Load Movie")
+                                                    , QDir::homePath()
+                                                    , tr("Video (*.*)"));
+    if (fileName.isEmpty())
+    {
+        statusBar()->showMessage(tr("Load canceled"), 2000);
+        return;
+    }
+
+    if (videoplayer->hasMediaFile())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Video Player"),
+                     tr("Already has a media file.\n"
+                        "Open a new one?"),
+                     QMessageBox::Open | QMessageBox::Cancel);
+
+        if (ret == QMessageBox::Cancel)
+            return;
+    }
+
+    videoplayer->loadFile(fileName);
+    setCurrentVideoFile(fileName);
+    statusBar()->showMessage(tr("Movie loaded"), 2000);
+
+    // try to load srt file with same name
+    QFileInfo fi(fileName);
+    QString srtFileName = fi.filePath() % fi.baseName() % QString(".srt");
+    if (!QFile::exists(srtFileName))
+    {
+        statusBar()->showMessage(tr("No matching event file detected"), 2000);
+        return;
+    }
+
+    if (maybeSave())
+    {
+        loadSrtFile(srtFileName);
+        setCurrentSrtFile(srtFileName);
+        statusBar()->showMessage(tr("Events of the movie loaded"), 2000);
+    }
+}
+
+void VideoImprinter::openSrt()
+{
+    if (maybeSave()) {
+        //TODO: remeber last path
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Load Events")
+                                                        , QDir::homePath(), tr("Subtitle (*.srt)"));
+        if (!fileName.isEmpty())
+            loadSrtFile(fileName);
+
+        statusBar()->showMessage(tr("Events loaded"), 2000);
+    }
+}
+
 bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
 {
     if (ev->type() == QEvent::KeyPress)
@@ -201,7 +287,7 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     {
     // video player controls
     case Qt::Key_Space:
-        videoplayer->play();
+        emit videoPlayToggled();
         break;
     case Qt::Key_Left:
         this->keyPressJumpBackward(event);
@@ -255,10 +341,10 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
 
     // save/load file
     case Qt::Key_S:
-        this->saveFile();
+        this->save();
         break;
     case Qt::Key_L:
-        this->loadFile();
+        this->openSrt();
         break;
 
     default:
@@ -272,13 +358,13 @@ void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
     switch(event->modifiers())
     {
     case Qt::NoModifier:
-        videoplayer->jumpTo(250);
+        videoplayer->jumpTo(videoJumpSpeeds[0]);
         break;
     case Qt::ControlModifier:
-        videoplayer->jumpTo(1000);
+        videoplayer->jumpTo(videoJumpSpeeds[1]);
         break;
     case Qt::ShiftModifier:
-        videoplayer->jumpTo(5000);
+        videoplayer->jumpTo(videoJumpSpeeds[2]);
         break;
     default:
         return;
@@ -291,13 +377,13 @@ void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
     switch(event->modifiers())
     {
     case Qt::NoModifier:
-        videoplayer->jumpTo(-250);
+        videoplayer->jumpTo(-videoJumpSpeeds[0]);
         break;
     case Qt::ControlModifier:
-        videoplayer->jumpTo(-1000);
+        videoplayer->jumpTo(-videoJumpSpeeds[1]);
         break;
     case Qt::ShiftModifier:
-        videoplayer->jumpTo(-5000);
+        videoplayer->jumpTo(-videoJumpSpeeds[2]);
         break;
     default:
         return;
@@ -365,3 +451,117 @@ void VideoImprinter::keyPressDeleteEvent(QKeyEvent *event)
 
     return;
 }
+
+void VideoImprinter::closeEvent(QCloseEvent *event)
+{
+    if (maybeSave()) {
+        writeSettings();
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
+void VideoImprinter::createActions()
+{
+}
+
+void VideoImprinter::createMenus()
+{
+}
+
+void VideoImprinter::createToolBars()
+{
+}
+
+
+void VideoImprinter::createStatusBar()
+{
+    statusBar()->showMessage(tr("Ready"));
+}
+
+void VideoImprinter::readSettings()
+{
+    for (int i=0; i<numOfEventTypes; i++)
+    {
+        eventLabelText[i] = QString("[%1]").arg(i);
+    }
+
+    videoJumpSpeeds[0] = 250;
+    videoJumpSpeeds[1] = 1000;
+    videoJumpSpeeds[2] = 5000;
+
+}
+
+void VideoImprinter::writeSettings()
+{
+}
+
+void VideoImprinter::setEventLabels()
+{
+    for (int i=0; i<numOfEventTypes; i++)
+    {
+        videoplayer->setEventLabel(i, eventLabelText[i]);
+    }
+
+    statusBar()->showMessage(tr("Evnet Labels set."), 2000);
+}
+
+
+bool VideoImprinter::saveSrtFile(const QString filename)
+{
+    return eventeditor->saveEvents(filename);
+}
+
+void VideoImprinter::setCurrentSrtFile(const QString &fileName)
+{
+    currentSrtFile = fileName;
+    eventeditor->setModified(false);
+    setWindowModified(false);
+
+    setWindowFilePath(currentSrtFile);
+//    eventeditor->setWindowFilePath(currentSrtFile);
+}
+
+void VideoImprinter::setCurrentVideoFile(const QString &fileName)
+{
+    currentVideoFile = fileName;
+//    videoplayer->setWindowFilePath(currentVideoFile);
+}
+
+
+bool VideoImprinter::maybeSave()
+{
+    if (eventeditor->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Video Imprinter"),
+                     tr("Events has been modified.\n"
+                        "Do you want to save your changes?"),
+                     QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save)
+            return save();
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
+}
+
+
+void VideoImprinter::documentWasModified()
+{
+    setWindowModified(eventeditor->isModified());
+}
+
+
+void VideoImprinter::loadSrtFile(const QString filename)
+{
+    eventeditor->loadEvents(filename);
+}
+
+
+void VideoImprinter::loadVideoFile(const QString filename)
+{
+    videoplayer->loadFile(filename);
+}
+

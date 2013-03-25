@@ -6,16 +6,14 @@
 
 EventEditor::EventEditor(QWidget *parent) :
     QWidget(parent)
+  , modified(true)
 {
-    QList<VideoEvent *> eventList;
-
-    eventList = EventModel::readInSrtFile("e:\\play.qt\\VItestResource\\20120322-CH5-03.srt");
-
-    videoEventModel = new EventModel(eventList, parent);
+    QList<VideoEvent *> l;
+    videoEventModel = new EventModel(l, this);
+    videoEventTable = new QTableView(this);
 
 //    videoEventDelegate = new VideoEventDelegate(this);
 
-    videoEventTable = new QTableView(this);
     videoEventTable->setModel(videoEventModel);
     videoEventTable->setSortingEnabled(false);
 //    videoEventTable->setItemDelegate(videoEventDelegate);
@@ -24,41 +22,13 @@ EventEditor::EventEditor(QWidget *parent) :
     videoEventTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     videoEventTable->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    warnDuplicates();
+    //loadEvents("");
 
-    // some sample fixture data
-//    QString text1 = "latency";
-//    QString text2 = "courtship";
-//    VideoEvent *one = new VideoEvent(532, 2647, text1);
-//    VideoEvent *two = new VideoEvent(2647, 5235, text2);
-//    VideoEvent *three = new VideoEvent(9632, 15236, text2);
-//    eventList << one << two << three;
-
-    // test add event from model
-   // QModelIndex index;
-//    QString textadd = "added";
-//    VideoEvent *added = new VideoEvent(30489, 30489, textadd);
-//    this->addEvent(added);
-
-//    videoEventModel->sort();
-
-//    index = videoEventModel->index(3,0,QModelIndex());
-//    videoEventModel->setData(index, 30382, Qt::EditRole);
-
-//    int ss = VideoEvent::msFromQTime(VideoEvent::QTimeFromMs(52567976));
-//    VideoEvent *added2 = new VideoEvent(45246, ss, textadd);
-//    this->addEvent(added2);
-//    videoEventModel->sort(Qt::DescendingOrder);
-
+    // sample fixatures data
+    loadEvents("e:\\play.qt\\VItestResource\\20120322-CH5-03.srt");
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(videoEventTable);
-
-    // debug output
-//    editorDebug = new QLabel;
-//    layout->addWidget(editorDebug);
-//    connect(videoEventModel, SIGNAL(dataChanged(QModelIndex,QModelIndex))
-//            , this, SLOT(outputDebug()));
 
     setLayout(layout);
 
@@ -99,11 +69,13 @@ void EventEditor::addEvent(VideoEvent *ve)
     videoEventModel->sort();
 
     emit eventAdded(videoEventModel->rowChangedFrom(0));
+    setModified(true);
 }
 
 void EventEditor::sortEvents()
 {
     videoEventModel->sort();
+    setModified(true);
 }
 
 void EventEditor::deleteEvent()
@@ -116,11 +88,19 @@ void EventEditor::deleteEvent()
     videoEventModel->removeRows(selectedRow, 1, QModelIndex());
 
     emit eventDeleted(selectedRow);
+    setModified(true);
 }
 
-void EventEditor::saveEvents(QString filename)
+bool EventEditor::saveEvents(QString filename)
 {
-    videoEventModel->saveCurrentEvents(filename);
+    return videoEventModel->saveCurrentEvents(filename);
+}
+
+void EventEditor::loadEvents(QString filename)
+{
+    QList<VideoEvent *> eventList = EventModel::readInSrtFile(filename);
+
+    videoEventModel->loadEventList(eventList);
 }
 
 void EventEditor::warnDuplicates()
@@ -133,6 +113,7 @@ void EventEditor::changeStartTime(int currentTime)
     setUpdatesEnabled(false);
     videoEventModel->changeStartTime(currentTime);
     setUpdatesEnabled(true);
+    setModified(true);
 }
 
 void EventEditor::changeEndTime(int currentTime)
@@ -140,6 +121,7 @@ void EventEditor::changeEndTime(int currentTime)
     setUpdatesEnabled(false);
     videoEventModel->changeEndTime(currentTime);
     setUpdatesEnabled(true);
+    setModified(true);
 }
 
 void EventEditor::changeEventText(QString newText)
@@ -147,6 +129,18 @@ void EventEditor::changeEventText(QString newText)
     setUpdatesEnabled(false);
     videoEventModel->changeEventText(newText);
     setUpdatesEnabled(true);
+    setModified(true);
+}
+
+bool EventEditor::isModified()
+{
+    return modified;
+}
+
+void EventEditor::setModified(bool m)
+{
+    modified = m;
+    emit modificationChanged(m);
 }
 
 void EventEditor::scrollToTime(int currentTime)

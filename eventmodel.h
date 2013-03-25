@@ -47,7 +47,7 @@ public:
     int rowChangedFrom(int originalRow);
 
     static QList<VideoEvent *> readInSrtFile(QString filename);
-    static void writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename);
+    static bool writeToSrtFile(QList<VideoEvent *> listOfVideoEvents, QString filename);
     static QList<int> detectDuplicates(QList<VideoEvent *> listOfVideoEvents);
 
 public slots:
@@ -58,7 +58,9 @@ public slots:
     void selectCurrentEvent(int currentTime);
     void highlightRows(QList<int> rows);
     void warnDuplicates();
-    void saveCurrentEvents(QString filename);
+    bool saveCurrentEvents(const QString filename);
+    void newEventsLoaded();
+    void loadEventList(QList<VideoEvent *> eventList);
 
 signals:
     void eventChanged(int row);

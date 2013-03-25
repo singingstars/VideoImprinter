@@ -2,6 +2,7 @@
 
 #include <QtWidgets>
 #include <QStringBuilder>
+#include <QMessageBox>
 #include <qvideowidget.h>
 #include <qvideosurfaceformat.h>
 
@@ -29,6 +30,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     playButton->setEnabled(false);
     playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
+    connect(this, SIGNAL(playToggled()), playButton, SIGNAL(clicked()));
     connect(playButton, SIGNAL(clicked()),
             this, SLOT(play()));
 
@@ -116,15 +118,46 @@ void VideoPlayer::setEventLabel(int iLabel, QString labelText)
     eventLabel[iLabel]->setText(numberedLabel);
 }
 
+void VideoPlayer::setHasMediaFile(bool f)
+{
+    isFileSet = f;
+    emit mediaFileStatusChanged(isFileSet);
+}
+
+bool VideoPlayer::hasMediaFile()
+{
+    return isFileSet;
+}
+
 void VideoPlayer::openFile()
 {
-    errorLabel->setText("");
+    if(hasMediaFile())
+    {
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(this, tr("Video Player"),
+                     tr("Already has a media file.\n"
+                        "Open a new one?"),
+                     QMessageBox::Open | QMessageBox::Cancel);
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie"),QDir::homePath());
+        if (ret == QMessageBox::Cancel)
+            return;
+    }
+
+     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Movie")
+                                                , QDir::homePath()
+                                                , tr("Any Media (*.*)"));
 
     if (!fileName.isEmpty()) {
+        loadFile(fileName);
+    }
+}
+
+void VideoPlayer::loadFile(const QString fileName)
+{
+    if (QFile::exists(fileName)) {
         mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
         playButton->setEnabled(true);
+        setHasMediaFile(true);
     }
 }
 
@@ -206,6 +239,7 @@ void VideoPlayer::speedDown()
     mediaPlayer.setPlaybackRate(speeds[currentSpeedId]);
     errorLabel->setText(QString("Speed: %1").arg(speeds[currentSpeedId]));
 }
+
 
 void VideoPlayer::mediaStateChanged(QMediaPlayer::State state)
 {

@@ -24,9 +24,6 @@ public:
     VideoImprinter(QWidget *parent = 0);
     ~VideoImprinter();
 
-    void saveFile();
-    void loadFile();
-
 public slots:
 
     // add a video event
@@ -44,9 +41,16 @@ public slots:
 
     void sortEvents();
 
+    bool save();
+    bool saveAs();
+    void openVideo();
+    void openSrt();
+    void documentWasModified();
+
 signals:
 //    void eventStarted();
 //    void eventEnded();
+    void videoPlayToggled();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);
@@ -55,6 +59,8 @@ protected:
     void keyPressJumpBackward(QKeyEvent *event);
     void keyPressAddEvent(QKeyEvent *event);
     void keyPressDeleteEvent(QKeyEvent *event);
+
+    void closeEvent(QCloseEvent *event);
 
 private:
     enum {numOfEventTypes = 10};
@@ -66,6 +72,31 @@ private:
     VideoEvent *currentEvent[numOfEventTypes];
     QString eventLabelText[numOfEventTypes];
     bool isEventGoing[numOfEventTypes];
+
+    QString currentVideoFile;
+    QString currentSrtFile;
+
+    // quick browsing speeds
+    int videoJumpSpeeds[3];
+
+    void createActions();
+    void createMenus();
+    void createToolBars();
+    void createStatusBar();
+    void readSettings();
+    void writeSettings();
+
+    void loadVideoFile(const QString filename);
+    void loadSrtFile(const QString filename);
+    bool maybeSave();
+    bool saveSrtFile(const QString filename);
+
+    void setCurrentSrtFile(const QString &fileName);
+    void setCurrentVideoFile(const QString &fileName);
+    QString strippedName(const QString &fullFileName);
+
+    //TODO: find a way to set event labels
+    void setEventLabels();
 };
 
 #endif // VIDEOIMPRINTER_H
