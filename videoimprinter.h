@@ -3,6 +3,9 @@
 
 #include <QMainWindow>
 #include <QKeyEvent>
+#include <QAction>
+#include <QToolBar>
+#include <QTimer>
 
 #include "videoplayer.h"
 #include "eventeditor.h"
@@ -43,6 +46,7 @@ public slots:
 
     bool save();
     bool saveAs();
+    void autoSave();
     void openVideo();
     void openSrt();
     void documentWasModified();
@@ -51,9 +55,11 @@ signals:
 //    void eventStarted();
 //    void eventEnded();
     void videoPlayToggled();
+    void videoGoto(int time);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *ev);
+    void childEvent(QChildEvent* e);
     void keyPressEvent(QKeyEvent *event);
     void keyPressJumpForward(QKeyEvent *event);
     void keyPressJumpBackward(QKeyEvent *event);
@@ -68,6 +74,15 @@ private:
     VideoPlayer *videoplayer;
     EventEditor *eventeditor;
 
+    QToolBar *mainToolbar;
+    QAction *openVideoAct;
+    QAction *openSrtAct;
+    QAction *saveAct;
+    QAction *saveAsAct;
+    QAction *exitAct;
+
+    QTimer *autoSaveTimer;
+
     // currently ongoing events, to be added to the editor
     VideoEvent *currentEvent[numOfEventTypes];
     QString eventLabelText[numOfEventTypes];
@@ -79,6 +94,8 @@ private:
     // quick browsing speeds
     int videoJumpSpeeds[3];
 
+    int autoSaveInterval;
+
     void createActions();
     void createMenus();
     void createToolBars();
@@ -88,6 +105,7 @@ private:
 
     void loadVideoFile(const QString filename);
     void loadSrtFile(const QString filename);
+    void newSrtFile();
     bool maybeSave();
     bool saveSrtFile(const QString filename);
 

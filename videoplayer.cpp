@@ -12,6 +12,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     , playButton(0)
     , positionSlider(0)
     , errorLabel(0)
+    , isFileSet(false)
 {
     // setup playback speeds
     qreal tmpSpeeds[numOfSpeeds] = {-2.0, -1.0, 0.1, 0.25, 0.5
@@ -23,8 +24,8 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     QVideoWidget *videoWidget = new QVideoWidget(this);
     videoWidget->setMinimumSize(320, 240);
 
-    QAbstractButton *openButton = new QPushButton(tr("Open..."), this);
-    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
+//    QAbstractButton *openButton = new QPushButton(tr("Open..."), this);
+//    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
 
     playButton = new QPushButton(this);
     playButton->setEnabled(false);
@@ -68,7 +69,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setMargin(0);
-    controlLayout->addWidget(openButton);
+//    controlLayout->addWidget(openButton);
     controlLayout->addWidget(playButton);
     controlLayout->addWidget(positionSlider);
     controlLayout->addWidget(timeLabel);

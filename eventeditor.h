@@ -8,6 +8,7 @@
 #include <QSortFilterProxyModel>
 #include <QLabel>
 #include <QList>
+#include <QChildEvent>
 
 
 #include "eventmodel.h"
@@ -39,8 +40,13 @@ public:
      void changeStartTime(int currentTime);
      void changeEndTime(int currentTime);
      void changeEventText(QString newText);
+     int getSelectedStartTime();
+     int getSelectedEndTime();
 
      bool isModified();
+
+protected:
+     void childEvent(QChildEvent* e);
 
 signals:
      void eventAdded(int row);

@@ -6,11 +6,13 @@
 
 EventEditor::EventEditor(QWidget *parent) :
     QWidget(parent)
-  , modified(true)
+  , modified(false)
 {
     QList<VideoEvent *> l;
     videoEventModel = new EventModel(l, this);
     videoEventTable = new QTableView(this);
+    videoEventTable->installEventFilter(parent);
+    videoEventTable->setMinimumSize(320, 240);
 
 //    videoEventDelegate = new VideoEventDelegate(this);
 
@@ -98,9 +100,11 @@ bool EventEditor::saveEvents(QString filename)
 
 void EventEditor::loadEvents(QString filename)
 {
+    setUpdatesEnabled(false);
     QList<VideoEvent *> eventList = EventModel::readInSrtFile(filename);
 
     videoEventModel->loadEventList(eventList);
+    setUpdatesEnabled(true);
 }
 
 void EventEditor::warnDuplicates()
@@ -132,9 +136,32 @@ void EventEditor::changeEventText(QString newText)
     setModified(true);
 }
 
+int EventEditor::getSelectedStartTime()
+{
+    return videoEventModel->getSelectedStartTime();
+}
+
+int EventEditor::getSelectedEndTime()
+{
+    return videoEventModel->getSelectedEndTime();
+}
+
 bool EventEditor::isModified()
 {
     return modified;
+}
+
+void EventEditor::childEvent(QChildEvent *e)
+{
+    if (e->child()->isWidgetType()) {
+        if (e->type() == QEvent::ChildAdded) {
+            e->child()->installEventFilter(parent());
+        } else if (e->type() == QEvent::ChildRemoved) {
+            e->child()->removeEventFilter(parent());
+        }
+    }
+
+    QWidget::childEvent(e);
 }
 
 void EventEditor::setModified(bool m)

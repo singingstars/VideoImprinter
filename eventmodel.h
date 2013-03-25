@@ -39,6 +39,8 @@ public:
     int getCurrentEventRow(int currentTime);
     QModelIndex getCurrentEventId(int currentTime);
     int getSelectedEvent();
+    int getSelectedStartTime();
+    int getSelectedEndTime();
     void changeStartTime(int currentTime);
     void changeEndTime(int currentTime);
     void changeEventText(QString newText);

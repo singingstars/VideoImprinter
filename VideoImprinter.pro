@@ -19,11 +19,11 @@ SOURCES += main.cpp\
     eventeditor.cpp \
     eventmodel.cpp \
     videoevent.cpp \
-    videoeventdelegate.cpp
+#    videoeventdelegate.cpp
 
 HEADERS  += videoimprinter.h \
     videoplayer.h \
     eventeditor.h \
     eventmodel.h \
     videoevent.h \
-    videoeventdelegate.h
+#    videoeventdelegate.h

@@ -262,7 +262,7 @@ bool EventModel::isEventDuplicate(VideoEvent *ve) const
  */
 void EventModel::sort(Qt::SortOrder order)
 {
-    emit(layoutAboutToBeChanged());
+    emit layoutAboutToBeChanged();
 
     QVector<QPair<VideoEvent*, int> > listOfSorting;
 
@@ -314,7 +314,7 @@ void EventModel::sort(Qt::SortOrder order)
     listOfChangedRow = changedRows;
     changePersistentIndexList(changedPersistentIndexesFrom, changedPersistentIndexesTo);
 
-    emit(layoutChanged());
+    emit layoutChanged();
 
     // highlights also changed
     QList<int> newHighlights;
@@ -378,6 +378,18 @@ QModelIndex EventModel::getCurrentEventId(int currentTime)
 int EventModel::getSelectedEvent()
 {
     return selectedEvent;
+}
+
+int EventModel::getSelectedStartTime()
+{
+    return data(index(selectedEvent, VideoEvent::StartTimeField, QModelIndex())
+                , Qt::UserRole).toInt();
+}
+
+int EventModel::getSelectedEndTime()
+{
+    return data(index(selectedEvent, VideoEvent::EndTimeField, QModelIndex())
+                , Qt::UserRole).toInt();
 }
 
 void EventModel::selectEvent(int row)
@@ -527,6 +539,8 @@ void EventModel::newEventsLoaded()
 
 void EventModel::loadEventList(QList<VideoEvent *> eventList)
 {
+    beginResetModel();
+
     listOfEvents = eventList;
 
     selectedEvent = 0;
@@ -543,9 +557,8 @@ void EventModel::loadEventList(QList<VideoEvent *> eventList)
         listOfChangedRow.append(i);
     }
 
+    endResetModel();
     warnDuplicates();
-    emit dataChanged(index(0, 0, QModelIndex())
-                     , index(rowCount()-1, columnCount()-1, QModelIndex()));
 }
 
 /**
@@ -586,6 +599,10 @@ QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
                 line = in.readLine();
         }
 
+        // Fail-safe
+        if (in.atEnd() || !line.contains(rxTimeLine))
+            break;
+
         QStringList srtTimeStringList = line.split(rxStartEndTimeSep);
 
         QStringList timeStringList = srtTimeStringList.at(0).split(rxTimeSep);
@@ -596,6 +613,7 @@ QList<VideoEvent *> EventModel::readInSrtFile(QString filename)
         QTime endQTime = QTime(timeStringList.at(0).toInt(), timeStringList.at(1).toInt()
                            , timeStringList.at(2).toInt(), timeStringList.at(3).toInt());
 
+        // read the next line which contains subtitle text
         QString eventText;
         if (!in.atEnd())
         {
