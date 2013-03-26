@@ -67,10 +67,10 @@ VideoPlayer::VideoPlayer(QWidget *parent)
         eventLabel[i] = new QLabel(this);
         eventLabel[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
         highlightEventText(i, false);
-        if (i < numOfLabels/2)
+//        if (i < numOfLabels/2)
             leftLabelLayout->addWidget(eventLabel[i]);
-        else
-            rightLabelLayout->addWidget(eventLabel[i]);
+//        else
+//            rightLabelLayout->addWidget(eventLabel[i]);
     }
     labeledVideoLayout->addLayout(leftLabelLayout);
     labeledVideoLayout->addWidget(videoWidget);
