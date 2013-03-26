@@ -12,7 +12,7 @@ EventEditor::EventEditor(QWidget *parent) :
     videoEventModel = new EventModel(l, this);
     videoEventTable = new QTableView(this);
     videoEventTable->installEventFilter(parent);
-    videoEventTable->setMinimumSize(320, 240);
+    videoEventTable->setMinimumSize(80, 60);
 
 //    videoEventDelegate = new VideoEventDelegate(this);
 
@@ -27,7 +27,7 @@ EventEditor::EventEditor(QWidget *parent) :
     //loadEvents("");
 
     // sample fixatures data
-    loadEvents("e:\\play.qt\\VItestResource\\20120322-CH5-03.srt");
+    //loadEvents("e:\\play.qt\\VItestResource\\20120322-CH5-03.srt");
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(videoEventTable);

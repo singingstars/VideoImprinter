@@ -6,6 +6,7 @@
 #include <QAction>
 #include <QToolBar>
 #include <QTimer>
+#include <QDir>
 
 #include "videoplayer.h"
 #include "eventeditor.h"
@@ -41,6 +42,9 @@ public slots:
     void changeStartTime(int currentTime);
     void changeEndTime(int currentTime);
     void changeEventText(QString newText);
+
+    QDir getWorkingDir();
+    void setWorkingDIr(QDir dir);
 
     void sortEvents();
 
@@ -82,6 +86,7 @@ private:
     QAction *exitAct;
 
     QTimer *autoSaveTimer;
+    QDir workingDir;
 
     // currently ongoing events, to be added to the editor
     VideoEvent *currentEvent[numOfEventTypes];

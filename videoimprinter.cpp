@@ -146,6 +146,16 @@ void VideoImprinter::changeEventText(QString newText)
     eventeditor->changeEventText(newText);
 }
 
+QDir VideoImprinter::getWorkingDir()
+{
+    return workingDir;
+}
+
+void VideoImprinter::setWorkingDIr(QDir dir)
+{
+    workingDir = dir;
+}
+
 void VideoImprinter::sortEvents()
 {
     eventeditor->sortEvents();
@@ -173,7 +183,7 @@ bool VideoImprinter::saveAs()
 //    fileNames = saveDialog.selectedFiles();
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Events As")
-                                                    , QDir::homePath()
+                                                    , workingDir.path()
                                                     , tr("Subtitle (*.srt)"));
 
     if (fileName.isEmpty())
@@ -191,7 +201,7 @@ void VideoImprinter::autoSave()
     QString fileName = currentSrtFile;
 
     if (fileName.isEmpty())
-        fileName = QDir::homePath() % tr("/unknownevents.srt~");
+        fileName = workingDir.path() % tr("/unknownevents.srt~");
     else
         fileName = fileName % tr("~");
 
@@ -206,7 +216,7 @@ void VideoImprinter::autoSave()
 void VideoImprinter::openVideo()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Load Movie")
-                                                    , QDir::homePath()
+                                                    , workingDir.path()
                                                     , tr("Video (*.*)"));
 
 //    QFileDialog openDialog(this, tr("Load Movie"));
@@ -266,10 +276,11 @@ void VideoImprinter::openVideo()
 
 void VideoImprinter::openSrt()
 {
-    if (maybeSave()) {
-        //TODO: remeber last path
+    if (maybeSave())
+    {
         QString fileName = QFileDialog::getOpenFileName(this, tr("Load Events")
-                                                        , QDir::homePath(), tr("Subtitle (*.srt)"));
+                                                        , workingDir.path()
+                                                        , tr("Subtitle (*.srt)"));
         if (fileName.isEmpty())
             return;
 
@@ -578,10 +589,9 @@ void VideoImprinter::createStatusBar()
 
 void VideoImprinter::readSettings()
 {
-//    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-//                            "singingstars", "VideoImprinter");
+    workingDir = QDir::homePath();
 
-    QSettings settings("config.ini", QSettings::IniFormat);
+    QSettings settings(QDir::currentPath().append("/config.ini"), QSettings::IniFormat);
 
     settings.beginGroup("MainWindow");
     resize(settings.value("size", QSize(430, 650)).toSize());
@@ -610,23 +620,11 @@ void VideoImprinter::readSettings()
     settings.beginGroup("File");
     autoSaveInterval = settings.value("auto_save_interval", 30000).toInt();
     settings.endGroup();
-
-//    for (int i=0; i<numOfEventTypes; i++)
-//    {
-//        eventLabelText[i] = QString("%1").arg(i);
-//    }
-
-//    videoJumpSpeeds[0] = 250;
-//    videoJumpSpeeds[1] = 1000;
-//    videoJumpSpeeds[2] = 5000;
-
-//    autoSaveInterval = 30000;
-
 }
 
 void VideoImprinter::writeSettings()
 {
-    QSettings settings("config.ini", QSettings::IniFormat);
+    QSettings settings(QDir::currentPath().append("/config.ini"), QSettings::IniFormat);
 
     settings.beginGroup("MainWindow");
     settings.setValue("size", size());
@@ -701,6 +699,8 @@ void VideoImprinter::setCurrentVideoFile(const QString &fileName)
                 % QFileInfo(currentVideoFile).fileName();
 
     setWindowTitle(t);
+
+    workingDir = QFileInfo(currentVideoFile).dir();
 }
 
 
