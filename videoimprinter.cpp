@@ -1,5 +1,6 @@
 #include <QDockWidget>
 #include <QBoxLayout>
+#include <QGridLayout>
 #include <QFileDialog>
 #include <QDir>
 #include <QStatusBar>
@@ -289,6 +290,11 @@ void VideoImprinter::openSrt()
     }
 }
 
+void VideoImprinter::videoSettings()
+{
+    createVideoSettingsDialog();
+}
+
 bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
 {
     if (ev->type() == QEvent::KeyPress)
@@ -568,6 +574,11 @@ void VideoImprinter::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
+
+    videoSettingsAct = new QAction(tr("Player"), this);
+    videoSettingsAct->setStatusTip((tr("Change video play settings")));
+    connect(videoSettingsAct, SIGNAL(triggered()), this, SLOT(videoSettings()));
+
 }
 
 void VideoImprinter::createMenus()
@@ -581,6 +592,7 @@ void VideoImprinter::createToolBars()
     mainToolbar->addAction(openSrtAct);
     mainToolbar->addAction(saveAct);
     mainToolbar->addAction(saveAsAct);
+    mainToolbar->addAction(videoSettingsAct);
     mainToolbar->addAction(exitAct);
 }
 
@@ -588,6 +600,63 @@ void VideoImprinter::createToolBars()
 void VideoImprinter::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
+}
+
+void VideoImprinter::createVideoSettingsDialog()
+{
+    QDialog *videoSettingsDialog = new QDialog(this);
+
+    // brightness
+    QLabel *b = new QLabel(tr("Brightness"), videoSettingsDialog);
+    QSlider *bs = new QSlider(Qt::Horizontal, videoSettingsDialog);
+    bs->setRange(-100, 100);
+    bs->setValue(videoplayer->getBrightness());
+
+    connect(bs, SIGNAL(sliderMoved(int)), videoplayer, SLOT(setBrightness(int)));
+    connect(videoplayer, SIGNAL(brightnessChanged(int)), bs, SLOT(setValue(int)));
+
+    // contrast
+    QLabel *c = new QLabel(tr("Contrast"), videoSettingsDialog);
+    QSlider *cs = new QSlider(Qt::Horizontal, videoSettingsDialog);
+    cs->setRange(-100, 100);
+    cs->setValue(videoplayer->getContrast());
+
+    connect(cs, SIGNAL(sliderMoved(int)), videoplayer, SLOT(setContrast(int)));
+    connect(videoplayer, SIGNAL(contrastChanged(int)), cs, SLOT(setValue(int)));
+
+    // hue
+    QLabel *h = new QLabel(tr("Hue"), videoSettingsDialog);
+    QSlider *hs = new QSlider(Qt::Horizontal, videoSettingsDialog);
+    hs->setRange(-100, 100);
+    hs->setValue(videoplayer->getHue());
+
+    connect(hs, SIGNAL(sliderMoved(int)), videoplayer, SLOT(setHue(int)));
+    connect(videoplayer, SIGNAL(hueChanged(int)), hs, SLOT(setValue(int)));
+
+    // saturation
+    QLabel *s = new QLabel(tr("Saturation"), videoSettingsDialog);
+    QSlider *ss = new QSlider(Qt::Horizontal, videoSettingsDialog);
+    ss->setRange(-100, 100);
+    ss->setValue(videoplayer->getSaturation());
+
+    connect(ss, SIGNAL(sliderMoved(int)), videoplayer, SLOT(setSaturation(int)));
+    connect(videoplayer, SIGNAL(saturationChanged(int)), ss, SLOT(setValue(int)));
+
+    // group together
+    QGridLayout *settingsLayout = new QGridLayout;
+    settingsLayout->addWidget(b, 0, 0, 1, 1);
+    settingsLayout->addWidget(bs, 0, 1, 1, 1);
+    settingsLayout->addWidget(c, 1, 0, 1, 1);
+    settingsLayout->addWidget(cs, 1, 1, 1, 1);
+    settingsLayout->addWidget(h, 2, 0, 1, 1);
+    settingsLayout->addWidget(hs, 2, 1, 1, 1);
+    settingsLayout->addWidget(s, 3, 0, 1, 1);
+    settingsLayout->addWidget(ss, 3, 1, 1, 1);
+
+    videoSettingsDialog->setLayout(settingsLayout);
+    videoSettingsDialog->setModal(false);
+
+    videoSettingsDialog->show();
 }
 
 void VideoImprinter::readSettings()

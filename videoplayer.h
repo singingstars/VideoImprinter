@@ -30,6 +30,11 @@ public:
     void setHasMediaFile(bool f = true);
     bool hasMediaFile();
 
+    int getBrightness();
+    int getContrast();
+    int getHue();
+    int getSaturation();
+
 public slots:
     void openFile();
     void loadFile(const QString fileName);
@@ -44,18 +49,28 @@ private slots:
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
     void setPosition(int position);
+    void setBrightness(int brightness);
+    void setContrast(int contrast);
+    void setHue(int hue);
+    void setSaturation(int saturation);
     void handleError();
 
 signals:
     void mediaFileStatusChanged(bool);
     void playToggled();
+    void brightnessChanged(int);
+    void contrastChanged(int);
+    void hueChanged(int);
+    void saturationChanged(int);
 
 private:
     enum {numOfLabels = 10, numOfSpeeds = 10};
 
     QMediaPlayer mediaPlayer;
+    QVideoWidget *videoWidget;
     QAbstractButton *playButton;
     QSlider *positionSlider;
+    QSlider *volumnSlider;
     QLabel *timeLabel;
     QLabel *errorLabel;
 

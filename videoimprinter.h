@@ -54,6 +54,7 @@ public slots:
     void autoSave();
     void openVideo();
     void openSrt();
+    void videoSettings();
     void documentWasModified();
     void toggleLayout();
     void setOrientation(Qt::Orientation ori);
@@ -87,6 +88,7 @@ private:
     QAction *saveAct;
     QAction *saveAsAct;
     QAction *exitAct;
+    QAction *videoSettingsAct;
 
     QTimer *autoSaveTimer;
     QDir workingDir;
@@ -110,6 +112,7 @@ private:
     void createMenus();
     void createToolBars();
     void createStatusBar();
+    void createVideoSettingsDialog();
     void readSettings();
     void writeSettings();
 

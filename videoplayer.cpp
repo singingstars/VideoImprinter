@@ -21,7 +21,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     for (int i=0; i<numOfSpeeds; i++)
         speeds[i] = tmpSpeeds[i];
 
-    QVideoWidget *videoWidget = new QVideoWidget(this);
+    videoWidget = new QVideoWidget(this);
     videoWidget->setMinimumSize(320, 240);
     videoWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
@@ -46,6 +46,14 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(updateTime()));
     connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(updateTime()));
+
+    volumnSlider = new QSlider(Qt::Vertical, this);
+    volumnSlider->setMaximumSize(20, 35);
+    volumnSlider->setRange(0, 100);
+    volumnSlider->setValue(mediaPlayer.volume());
+
+    connect(&mediaPlayer, SIGNAL(volumeChanged(int)), volumnSlider, SLOT(setValue(int)));
+    connect(volumnSlider, SIGNAL(sliderMoved(int)), &mediaPlayer, SLOT(setVolume(int)));
 
     errorLabel = new QLabel(this);
     errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
@@ -74,11 +82,12 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     controlLayout->addWidget(playButton);
     controlLayout->addWidget(positionSlider);
     controlLayout->addWidget(timeLabel);
+    controlLayout->addWidget(volumnSlider);
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(labeledVideoLayout);
     layout->addLayout(controlLayout);
-    layout->addWidget(errorLabel);
+//    layout->addWidget(errorLabel);
 
     setLayout(layout);
 
@@ -129,6 +138,26 @@ void VideoPlayer::setHasMediaFile(bool f)
 bool VideoPlayer::hasMediaFile()
 {
     return isFileSet;
+}
+
+int VideoPlayer::getBrightness()
+{
+    return videoWidget->brightness();
+}
+
+int VideoPlayer::getContrast()
+{
+    return videoWidget->contrast();
+}
+
+int VideoPlayer::getHue()
+{
+    return videoWidget->hue();
+}
+
+int VideoPlayer::getSaturation()
+{
+    return videoWidget->saturation();
 }
 
 void VideoPlayer::openFile()
@@ -268,6 +297,29 @@ void VideoPlayer::durationChanged(qint64 duration)
 void VideoPlayer::setPosition(int position)
 {
     mediaPlayer.setPosition(position);
+}
+
+void VideoPlayer::setBrightness(int brightness)
+{
+    videoWidget->setBrightness(brightness);
+    emit brightnessChanged(brightness);
+}
+
+void VideoPlayer::setContrast(int contrast)
+{
+    videoWidget->setContrast(contrast);
+    emit contrastChanged(contrast);
+}
+void VideoPlayer::setHue(int hue)
+{
+    videoWidget->setContrast(hue);
+    emit contrastChanged(hue);
+}
+
+void VideoPlayer::setSaturation(int saturation)
+{
+    videoWidget->setSaturation(saturation);
+    emit saturationChanged(saturation);
 }
 
 void VideoPlayer::handleError()

@@ -7,9 +7,8 @@ TODO
 ----
 
 * modify layout for cleaness and ease of use
-* video playback filter (e.g. to gray)
 * menus, actions, toolbar
-* settings dialogue, event label settings, video control settings, video filter settings
+* settings dialogue, event label settings, video control settings
 
 Windows deployment
 ------------------
@@ -31,3 +30,16 @@ Qt5MultimediaWidgets.dll
 Qt5Network.dll
 Qt5OpenGL.dll
 Qt5Widgets.dll
+
+accessible\qtaccessiblewidgets.dll
+imageformats\qgif.dll
+imageformats\qico.dll
+imageformats\qjpeg.dll
+imageformats\qmng.dll
+imageformats\qsvg.dll
+imageformats\qtga.dll
+imageformats\qtiff.dll
+imageformats\qwbmp.dll
+mediaservice\dsengine.dll
+mediaservice\qtmedia_audioengine.dll
+platforms\qwindows.dll
