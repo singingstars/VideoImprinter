@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QStringBuilder>
 #include <QFileInfo>
+#include <QSettings>
 
 #include "videoimprinter.h"
 
@@ -577,21 +578,78 @@ void VideoImprinter::createStatusBar()
 
 void VideoImprinter::readSettings()
 {
+//    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+//                            "singingstars", "VideoImprinter");
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+
+    settings.beginGroup("MainWindow");
+    resize(settings.value("size", QSize(430, 650)).toSize());
+    move(settings.value("pos", QPoint(200, 200)).toPoint());
+    settings.endGroup();
+
+    settings.beginGroup("EventLabel");
     for (int i=0; i<numOfEventTypes; i++)
     {
-        eventLabelText[i] = QString("%1").arg(i);
+        eventLabelText[i] = settings.value(QString("label%1").arg(i)
+                                           , QString("%1").arg(i))
+                                           .toString();
     }
+    settings.endGroup();
 
-    videoJumpSpeeds[0] = 250;
-    videoJumpSpeeds[1] = 1000;
-    videoJumpSpeeds[2] = 5000;
+    settings.beginGroup("Video");
+    int defaultSpeeds[3] = {250, 1000, 5000};
+    for (int i=0; i<3; i++)
+    {
+        videoJumpSpeeds[i] = settings.value(QString("jumpSpeed%1").arg(i)
+                                            , defaultSpeeds[i])
+                                            .toInt();
+    }
+    settings.endGroup();
 
-    autoSaveInterval = 30000;
+    settings.beginGroup("File");
+    autoSaveInterval = settings.value("auto_save_interval", 30000).toInt();
+    settings.endGroup();
+
+//    for (int i=0; i<numOfEventTypes; i++)
+//    {
+//        eventLabelText[i] = QString("%1").arg(i);
+//    }
+
+//    videoJumpSpeeds[0] = 250;
+//    videoJumpSpeeds[1] = 1000;
+//    videoJumpSpeeds[2] = 5000;
+
+//    autoSaveInterval = 30000;
 
 }
 
 void VideoImprinter::writeSettings()
 {
+    QSettings settings("config.ini", QSettings::IniFormat);
+
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+
+    settings.beginGroup("EventLabel");
+    for (int i=0; i<numOfEventTypes; i++)
+    {
+        settings.setValue(QString("label%1").arg(i), eventLabelText[i]);
+    }
+    settings.endGroup();
+
+    settings.beginGroup("Video");
+    for (int i=0; i<3; i++)
+    {
+        settings.setValue(QString("jumpSpeed%1").arg(i), videoJumpSpeeds[i]);
+    }
+    settings.endGroup();
+
+    settings.beginGroup("File");
+    settings.setValue("auto_save_interval", autoSaveInterval);
+    settings.endGroup();
 }
 
 void VideoImprinter::setEventLabels()
