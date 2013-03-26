@@ -7,6 +7,7 @@
 #include <QToolBar>
 #include <QTimer>
 #include <QDir>
+#include <QSplitter>
 
 #include "videoplayer.h"
 #include "eventeditor.h"
@@ -54,6 +55,8 @@ public slots:
     void openVideo();
     void openSrt();
     void documentWasModified();
+    void toggleLayout();
+    void setOrientation(Qt::Orientation ori);
 
 signals:
 //    void eventStarted();
@@ -87,6 +90,8 @@ private:
 
     QTimer *autoSaveTimer;
     QDir workingDir;
+    QSplitter *mainSplitter;
+    Qt::Orientation layoutOrientation;
 
     // currently ongoing events, to be added to the editor
     VideoEvent *currentEvent[numOfEventTypes];

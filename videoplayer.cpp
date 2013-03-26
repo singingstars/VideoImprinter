@@ -23,6 +23,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     QVideoWidget *videoWidget = new QVideoWidget(this);
     videoWidget->setMinimumSize(320, 240);
+    videoWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
 //    QAbstractButton *openButton = new QPushButton(tr("Open..."), this);
 //    connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
@@ -56,7 +57,7 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     for (int i=0; i<numOfLabels; i++)
     {
         eventLabel[i] = new QLabel(this);
-        eventLabel[i]->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+        eventLabel[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
         highlightEventText(i, false);
         if (i < numOfLabels/2)
             leftLabelLayout->addWidget(eventLabel[i]);

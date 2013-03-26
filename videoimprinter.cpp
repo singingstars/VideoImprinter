@@ -1,6 +1,5 @@
 #include <QDockWidget>
 #include <QBoxLayout>
-#include <QSplitter>
 #include <QFileDialog>
 #include <QDir>
 #include <QStatusBar>
@@ -18,15 +17,15 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     setWindowTitle(tr("Video Imprinter[*]"));
     move(100, 100);
 
-    QSplitter *splitter = new QSplitter(this);
+    mainSplitter = new QSplitter(this);
     videoplayer = new VideoPlayer(this);
     eventeditor = new EventEditor(this);
-    splitter->addWidget(videoplayer);
-    splitter->addWidget(eventeditor);
-    splitter->setOrientation(Qt::Vertical);
+    mainSplitter->addWidget(videoplayer);
+    mainSplitter->addWidget(eventeditor);
+    mainSplitter->setOrientation(Qt::Vertical);
 
     QBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(splitter);
+    layout->addWidget(mainSplitter);
 
     QWidget *centralW = new QWidget(this);
     centralW->setLayout(layout);
@@ -360,6 +359,10 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key())
     {
+    // global management
+    case Qt::Key_F12:
+        this->toggleLayout();
+
     // video player controls
     case Qt::Key_Space:
         emit videoPlayToggled();
@@ -596,6 +599,7 @@ void VideoImprinter::readSettings()
     settings.beginGroup("MainWindow");
     resize(settings.value("size", QSize(430, 650)).toSize());
     move(settings.value("pos", QPoint(200, 200)).toPoint());
+    setOrientation((Qt::Orientation)(settings.value("orientation", Qt::Vertical).toInt()));
     settings.endGroup();
 
     settings.beginGroup("EventLabel");
@@ -629,6 +633,7 @@ void VideoImprinter::writeSettings()
     settings.beginGroup("MainWindow");
     settings.setValue("size", size());
     settings.setValue("pos", pos());
+    settings.setValue("orientation", layoutOrientation);
     settings.endGroup();
 
     settings.beginGroup("EventLabel");
@@ -725,6 +730,25 @@ bool VideoImprinter::maybeSave()
 void VideoImprinter::documentWasModified()
 {
     setWindowModified(eventeditor->isModified());
+}
+
+void VideoImprinter::toggleLayout()
+{
+    if (layoutOrientation == Qt::Horizontal)
+    {
+        layoutOrientation = Qt::Vertical;
+    } else if (layoutOrientation == Qt::Vertical)
+    {
+        layoutOrientation = Qt::Horizontal;
+    }
+
+    mainSplitter->setOrientation(layoutOrientation);
+}
+
+void VideoImprinter::setOrientation(Qt::Orientation ori)
+{
+    layoutOrientation = ori;
+    mainSplitter->setOrientation(layoutOrientation);
 }
 
 
