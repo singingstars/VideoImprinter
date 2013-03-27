@@ -8,12 +8,14 @@
 
 VideoPlayer::VideoPlayer(QWidget *parent)
     : QWidget(parent)
-    , mediaPlayer(0, QMediaPlayer::VideoSurface)
     , playButton(0)
     , positionSlider(0)
     , errorLabel(0)
     , isFileSet(false)
 {
+    mediaPlayer = new QMediaPlayer(this, QMediaPlayer::VideoSurface);
+    mediaPlayer->setNotifyInterval(50);
+
     // setup playback speeds
     qreal tmpSpeeds[numOfSpeeds] = {-2.0, -1.0, 0.1, 0.25, 0.5
                                  , 1.0, 2.0, 4.0, 8.0, 12.0};
@@ -44,16 +46,17 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     timeLabel = new QLabel(this);
 
-    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(updateTime()));
-    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(updateTime()));
+    connect(mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(updateTime()));
+    connect(mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(updateTime()));
 
     volumnSlider = new QSlider(Qt::Vertical, this);
     volumnSlider->setMaximumSize(20, 35);
     volumnSlider->setRange(0, 100);
-    volumnSlider->setValue(mediaPlayer.volume());
+    mediaPlayer->setVolume(0);
+    volumnSlider->setValue(mediaPlayer->volume());
 
-    connect(&mediaPlayer, SIGNAL(volumeChanged(int)), volumnSlider, SLOT(setValue(int)));
-    connect(volumnSlider, SIGNAL(sliderMoved(int)), &mediaPlayer, SLOT(setVolume(int)));
+    connect(mediaPlayer, SIGNAL(volumeChanged(int)), volumnSlider, SLOT(setValue(int)));
+    connect(volumnSlider, SIGNAL(sliderMoved(int)), mediaPlayer, SLOT(setVolume(int)));
 
     errorLabel = new QLabel(this);
     errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
@@ -91,12 +94,13 @@ VideoPlayer::VideoPlayer(QWidget *parent)
 
     setLayout(layout);
 
-    mediaPlayer.setVideoOutput(videoWidget);
-    connect(&mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
+    mediaPlayer->setVideoOutput(videoWidget);
+    connect(mediaPlayer, SIGNAL(stateChanged(QMediaPlayer::State)),
             this, SLOT(mediaStateChanged(QMediaPlayer::State)));
-    connect(&mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
-    connect(&mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
+    connect(mediaPlayer, SIGNAL(positionChanged(qint64)), this, SIGNAL(playerPositionChanged(qint64)));
+    connect(mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
+    connect(mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChanged(qint64)));
+    connect(mediaPlayer, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
 
 }
 
@@ -106,7 +110,7 @@ VideoPlayer::~VideoPlayer()
 
 int VideoPlayer::getPosition()
 {
-    return (int)(mediaPlayer.position());
+    return (int)(mediaPlayer->position());
 }
 
 void VideoPlayer::highlightEventText(int iLabel, bool isOn)
@@ -186,7 +190,7 @@ void VideoPlayer::openFile()
 void VideoPlayer::loadFile(const QString fileName)
 {
     if (QFile::exists(fileName)) {
-        mediaPlayer.setMedia(QUrl::fromLocalFile(fileName));
+        mediaPlayer->setMedia(QUrl::fromLocalFile(fileName));
         playButton->setEnabled(true);
         setHasMediaFile(true);
     }
@@ -194,20 +198,20 @@ void VideoPlayer::loadFile(const QString fileName)
 
 void VideoPlayer::play()
 {
-    switch(mediaPlayer.state()) {
+    switch(mediaPlayer->state()) {
     case QMediaPlayer::PlayingState:
-        mediaPlayer.pause();
+        mediaPlayer->pause();
         break;
     default:
-        mediaPlayer.play();
+        mediaPlayer->play();
         break;
     }
 }
 
 void VideoPlayer::updateTime()
 {
-    qint64 len = mediaPlayer.duration();
-    qint64 pos = mediaPlayer.position();
+    qint64 len = mediaPlayer->duration();
+    qint64 pos = mediaPlayer->position();
     QString timeString;
     if (pos || len)
     {
@@ -240,12 +244,13 @@ void VideoPlayer::updateTime()
 
 void VideoPlayer::jumpTo(int increament)
 {
-    mediaPlayer.setPosition(mediaPlayer.position() + increament);
+    mediaPlayer->setPosition(mediaPlayer->position() + increament);
+
 }
 
 void VideoPlayer::speedUp()
 {
-//    if (mediaPlayer.state() != QMediaPlayer::PlayingState)
+//    if (mediaPlayer->state() != QMediaPlayer::PlayingState)
 //        return;
 
     if ((currentSpeedId < numOfSpeeds - 1) && (currentSpeedId >= 0))
@@ -253,13 +258,13 @@ void VideoPlayer::speedUp()
     else
         currentSpeedId = numOfSpeeds - 1;
 
-    mediaPlayer.setPlaybackRate(speeds[currentSpeedId]);
+    mediaPlayer->setPlaybackRate(speeds[currentSpeedId]);
     errorLabel->setText(QString("Speed: %1").arg(speeds[currentSpeedId]));
 }
 
 void VideoPlayer::speedDown()
 {
-//    if (mediaPlayer.state() != QMediaPlayer::PlayingState)
+//    if (mediaPlayer->state() != QMediaPlayer::PlayingState)
 //        return;
 
     if ((currentSpeedId > 0) && (currentSpeedId < numOfSpeeds))
@@ -267,7 +272,7 @@ void VideoPlayer::speedDown()
     else
         currentSpeedId = 0;
 
-    mediaPlayer.setPlaybackRate(speeds[currentSpeedId]);
+    mediaPlayer->setPlaybackRate(speeds[currentSpeedId]);
     errorLabel->setText(QString("Speed: %1").arg(speeds[currentSpeedId]));
 }
 
@@ -296,7 +301,7 @@ void VideoPlayer::durationChanged(qint64 duration)
 
 void VideoPlayer::setPosition(int position)
 {
-    mediaPlayer.setPosition(position);
+    mediaPlayer->setPosition(position);
 }
 
 void VideoPlayer::setBrightness(int brightness)
@@ -325,5 +330,5 @@ void VideoPlayer::setSaturation(int saturation)
 void VideoPlayer::handleError()
 {
     playButton->setEnabled(false);
-    errorLabel->setText("Error: " + mediaPlayer.errorString());
+    errorLabel->setText("Error: " + mediaPlayer->errorString());
 }

@@ -47,15 +47,16 @@ VideoImprinter::VideoImprinter(QWidget *parent)
 //    setCurrentSrtFile(tr(""));
 //    setCurrentVideoFile(tr(""));
 
-    // setup event labels
+    // setup event labels states
     setEventLabels();
     for (int i=0; i<numOfEventTypes; i++)
-    {//TODO: setup label with app settings
+    {
         isEventGoing[i] = false;
     }
 
     //TODO: install event filter with help of childEvent
     eventeditor->installEventFilter(this);
+//    eventeditor->getTableView()->viewport()->installEventFilter(this);
     QList<QWidget*> widgets = eventeditor->findChildren<QWidget*>();
     foreach(QWidget *widget, widgets)
     {
@@ -78,8 +79,8 @@ VideoImprinter::VideoImprinter(QWidget *parent)
     connect(eventeditor, SIGNAL(timeDoubleClicked(int))
             , videoplayer, SLOT(setPosition(int)));
     connect(this, SIGNAL(videoGoto(int)), videoplayer, SLOT(setPosition(int)));
-//    connect(videoplayer, SIGNAL(positionChanged(qint64))
-//            , eventeditor, SLOT(scrollToTime(int)));
+    connect(videoplayer, SIGNAL(playerPositionChanged(qint64))
+            , eventeditor, SLOT(highlightCurrentRows(qint64)));
     connect(eventeditor, SIGNAL(modificationChanged(bool))
             , this, SLOT(documentWasModified()));
 
@@ -525,6 +526,7 @@ void VideoImprinter::keyPressAddEvent(QKeyEvent *event)
     if (event->modifiers() == Qt::ControlModifier)
     {
         this->changeEventText(eventLabelText[i]);
+        return;
     }
 
     this->toggleEvent(i);

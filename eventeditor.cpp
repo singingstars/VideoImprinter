@@ -1,4 +1,5 @@
 #include <QBoxLayout>
+#include <QKeyEvent>
 
 #include "eventeditor.h"
 #include "eventmodel.h"
@@ -11,7 +12,8 @@ EventEditor::EventEditor(QWidget *parent) :
     QList<VideoEvent *> l;
     videoEventModel = new EventModel(l, this);
     videoEventTable = new QTableView(this);
-    videoEventTable->installEventFilter(parent);
+//    videoEventTable->installEventFilter(parent);
+//    videoEventTable->viewport()->installEventFilter(parent);
     videoEventTable->setMinimumSize(80, 60);
 
 //    videoEventDelegate = new VideoEventDelegate(this);
@@ -72,6 +74,8 @@ void EventEditor::addEvent(VideoEvent *ve)
 
     emit eventAdded(videoEventModel->rowChangedFrom(0));
     setModified(true);
+//    videoEventTable->viewport()->installEventFilter(parent());
+
 }
 
 void EventEditor::sortEvents()
@@ -105,6 +109,8 @@ void EventEditor::loadEvents(QString filename)
 
     videoEventModel->loadEventList(eventList);
     setUpdatesEnabled(true);
+
+//    videoEventTable->viewport()->installEventFilter(parent());
 }
 
 void EventEditor::warnDuplicates()
@@ -151,18 +157,23 @@ bool EventEditor::isModified()
     return modified;
 }
 
-void EventEditor::childEvent(QChildEvent *e)
+QTableView *EventEditor::getTableView()
 {
-    if (e->child()->isWidgetType()) {
-        if (e->type() == QEvent::ChildAdded) {
-            e->child()->installEventFilter(parent());
-        } else if (e->type() == QEvent::ChildRemoved) {
-            e->child()->removeEventFilter(parent());
-        }
-    }
-
-    QWidget::childEvent(e);
+    return videoEventTable;
 }
+
+//void EventEditor::childEvent(QChildEvent *e)
+//{
+//    if (e->child()->isWidgetType()) {
+//        if (e->type() == QEvent::ChildAdded) {
+//            e->child()->installEventFilter(parent());
+//        } else if (e->type() == QEvent::ChildRemoved) {
+//            e->child()->removeEventFilter(parent());
+//        }
+//    }
+
+//    QWidget::childEvent(e);
+//}
 
 void EventEditor::setModified(bool m)
 {
@@ -187,6 +198,16 @@ void EventEditor::scrollToRow(int row)
 {
     QModelIndex idRow = videoEventModel->index(row, 0, QModelIndex());
     videoEventTable->scrollTo(idRow);
+}
+
+void EventEditor::highlightCurrentRows(int currentTime)
+{
+    videoEventModel->updateCurrentRows(currentTime);
+}
+
+void EventEditor::highlightCurrentRows(qint64 currentTime)
+{
+    videoEventModel->updateCurrentRows(static_cast<int>(currentTime));
 }
 
 void EventEditor::selectRow(int row)

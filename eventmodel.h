@@ -36,7 +36,7 @@ public:
     void sort(Qt::SortOrder order = Qt::AscendingOrder);
 
     // row selection
-    int getCurrentEventRow(int currentTime);
+    QList<int> calculateCurrentEvent(int currentTime);
     QModelIndex getCurrentEventId(int currentTime);
     int getSelectedEvent();
     int getSelectedStartTime();
@@ -63,6 +63,7 @@ public slots:
     bool saveCurrentEvents(const QString filename);
     void newEventsLoaded();
     void loadEventList(QList<VideoEvent *> eventList);
+    void updateCurrentRows(int currentTime);
 
 signals:
     void eventChanged(int row);
@@ -77,11 +78,14 @@ private:
     // index = after sorting (now), value = before sorting
     QList<int> listOfChangedRow;
 
-    QList<int> listOfHighlightedRow;
+    //
+    QList<int> listOfWarnedRow;
 
     // is a selected row
     int selectedEvent;
 
+    // is a current row(calcualted from time)
+    QList<int> listOfCurrentEvent;
 };
 
 #endif // EVENTMODEL_H

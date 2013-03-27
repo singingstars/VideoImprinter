@@ -62,11 +62,12 @@ signals:
     void contrastChanged(int);
     void hueChanged(int);
     void saturationChanged(int);
+    void playerPositionChanged(qint64);
 
 private:
     enum {numOfLabels = 10, numOfSpeeds = 10};
 
-    QMediaPlayer mediaPlayer;
+    QMediaPlayer *mediaPlayer;
     QVideoWidget *videoWidget;
     QAbstractButton *playButton;
     QSlider *positionSlider;

@@ -45,8 +45,10 @@ public:
 
      bool isModified();
 
+     QTableView *getTableView();
+
 protected:
-     void childEvent(QChildEvent* e);
+//     void childEvent(QChildEvent* e);
 
 signals:
      void eventAdded(int row);
@@ -58,6 +60,8 @@ public slots:
      void scrollToTime(int currentTime);
      void scrollToTime(qint64 currentTime);
      void scrollToRow(int row);
+     void highlightCurrentRows(int currentTime);
+     void highlightCurrentRows(qint64 currentTime);
      void selectRow(int row);
      void selectPreviousEvent();
      void selectNextEvent();

@@ -49,7 +49,7 @@ EventModel::EventModel(QList<VideoEvent *> eventList, QObject *parent)
 {
     this->listOfEvents = eventList;
 
-    listOfHighlightedRow.reserve(rowCount());
+    listOfWarnedRow.reserve(rowCount());
 
     listOfChangedRow.reserve(rowCount());
 
@@ -121,7 +121,12 @@ QVariant EventModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::BackgroundRole)
     {
-        if (listOfHighlightedRow.contains(index.row()))
+        if (listOfCurrentEvent.contains(index.row()))
+        {
+            return QBrush(QColor(Qt::yellow));
+        }
+
+        if (listOfWarnedRow.contains(index.row()))
         {
             return QBrush(QColor(Qt::red));
         }
@@ -318,9 +323,9 @@ void EventModel::sort(Qt::SortOrder order)
 
     // highlights also changed
     QList<int> newHighlights;
-    newHighlights.reserve(listOfHighlightedRow.size());
+    newHighlights.reserve(listOfWarnedRow.size());
 
-    foreach (int r, listOfHighlightedRow)
+    foreach (int r, listOfWarnedRow)
     {
         newHighlights.append(rowChangedFrom(r));
     }
@@ -331,26 +336,21 @@ void EventModel::sort(Qt::SortOrder order)
     selectEvent(rowChangedFrom(selectedEvent));
 }
 
-int EventModel::getCurrentEventRow(int currentTime)
+QList<int> EventModel::calculateCurrentEvent(int currentTime)
 {
-    if (!rowCount())
-        return -1;
-
-    int maxId = 0;
-    int maxTime = (listOfEvents.at(0))->getStartTime();
+    QList<int> currentRows;
+    currentRows.reserve(rowCount());
 
     for (int i=0; i<rowCount(); i++)
     {
-        int ithTime = (listOfEvents.at(i))->getStartTime();
-
-        if ((ithTime < currentTime) && (ithTime > maxTime))
+        if  ((listOfEvents.at(i)->getStartTime() <= currentTime)
+              && (listOfEvents.at(i)->getEndTime() >= currentTime))
         {
-            maxId = i;
-            maxTime = ithTime;
+            currentRows.append(i);
         }
     }
 
-    return maxId;
+    return currentRows;
 }
 
 QModelIndex EventModel::getCurrentEventId(int currentTime)
@@ -453,9 +453,9 @@ void EventModel::selectCurrentEvent(int currentTime)
 
 void EventModel::highlightRows(QList<int> rows)
 {
-    QSet<int> rowsToChange = listOfHighlightedRow.toSet() + rows.toSet();
+    QSet<int> rowsToChange = listOfWarnedRow.toSet() + rows.toSet();
 
-    listOfHighlightedRow = rows;
+    listOfWarnedRow = rows;
 
     foreach (int row, rowsToChange)
     {
@@ -521,8 +521,8 @@ void EventModel::newEventsLoaded()
     selectedEvent = 0;
 
     QList<int> l;
-    listOfHighlightedRow = l;
-    listOfHighlightedRow.reserve(rowCount());
+    listOfWarnedRow = l;
+    listOfWarnedRow.reserve(rowCount());
 
     listOfChangedRow = l;
     listOfChangedRow.reserve(rowCount());
@@ -546,8 +546,11 @@ void EventModel::loadEventList(QList<VideoEvent *> eventList)
     selectedEvent = 0;
 
     QList<int> l;
-    listOfHighlightedRow = l;
-    listOfHighlightedRow.reserve(rowCount());
+    listOfWarnedRow = l;
+    listOfWarnedRow.reserve(rowCount());
+
+    listOfCurrentEvent = l;
+    listOfCurrentEvent.reserve(rowCount());
 
     listOfChangedRow = l;
     listOfChangedRow.reserve(rowCount());
@@ -559,6 +562,21 @@ void EventModel::loadEventList(QList<VideoEvent *> eventList)
 
     endResetModel();
     warnDuplicates();
+}
+
+void EventModel::updateCurrentRows(int currentTime)
+{
+    QList<int> rows = calculateCurrentEvent(currentTime);
+
+    QSet<int> rowsToChange = listOfCurrentEvent.toSet() + rows.toSet();
+
+    listOfCurrentEvent = rows;
+
+    foreach (int row, rowsToChange)
+    {
+        emit dataChanged(index(row, 0, QModelIndex())
+                         , index(row, columnCount()-1, QModelIndex()));
+    }
 }
 
 /**
