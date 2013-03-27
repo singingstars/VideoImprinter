@@ -1,0 +1,35 @@
+Keyboard Shortcuts:
+-------------------
+
+[Video Control]
+Space           Play/Pause
+Left            Quick Jump Backwards 1
+Ctrl + Left     Quick Jump Backwards 2
+Shift + Left    Quick Jump Backwards 3
+
+Right           Quick Jump Forward 1
+Ctrl + Right    Quick Jump Forward 2
+Shift + Right   Quick Jump Forward 3
+
+[Adding Event]
+0~9             Add Event 0~9
+
+[Select Event]
+P               Select Current Event
+[               Select Previous Event
+]               Select Next Event
+
+A               Jump Video to Selected Start Time
+D               Jump Video to Selected End Time
+
+[Edit Selected Event]
+;               Change Start Time to now
+'               Change End Time to now
+Ctrl + 0~9      Change Text to 0~9
+Ctrl + Del      Delete Event
+G               Sort Event List
+
+[File Operation]
+Ctrl + S        Save current file
+Ctrl + L        Load new *.srt file
+
