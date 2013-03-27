@@ -575,8 +575,8 @@ void VideoImprinter::createActions()
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
-    videoSettingsAct = new QAction(tr("Player"), this);
-    videoSettingsAct->setStatusTip((tr("Change video play settings")));
+    videoSettingsAct = new QAction(tr("Video Filter"), this);
+    videoSettingsAct->setStatusTip((tr("Change video play filter")));
     connect(videoSettingsAct, SIGNAL(triggered()), this, SLOT(videoSettings()));
 
 }
@@ -605,6 +605,8 @@ void VideoImprinter::createStatusBar()
 void VideoImprinter::createVideoSettingsDialog()
 {
     QDialog *videoSettingsDialog = new QDialog(this);
+    videoSettingsDialog->setWindowTitle(tr("Video Filters"));
+    videoSettingsDialog->setModal(false);
 
     // brightness
     QLabel *b = new QLabel(tr("Brightness"), videoSettingsDialog);
@@ -654,7 +656,6 @@ void VideoImprinter::createVideoSettingsDialog()
     settingsLayout->addWidget(ss, 3, 1, 1, 1);
 
     videoSettingsDialog->setLayout(settingsLayout);
-    videoSettingsDialog->setModal(false);
 
     videoSettingsDialog->show();
 }
