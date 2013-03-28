@@ -41,6 +41,7 @@ EventEditor::EventEditor(QWidget *parent) :
     connect(this, SIGNAL(eventAdded(int)), this, SLOT(warnDuplicates()));
     connect(this, SIGNAL(eventDeleted(int)), this, SLOT(selectRow(int)));
     connect(this, SIGNAL(eventDeleted(int)), this, SLOT(warnDuplicates()));
+    connect(this, SIGNAL(modificationChanged(bool)), this, SLOT(resizeTextColumn()));
 
     connect(videoEventModel, SIGNAL(eventSelectionChanged(int))
             , videoEventTable, SLOT(selectRow(int)));
@@ -179,6 +180,11 @@ void EventEditor::setModified(bool m)
 {
     modified = m;
     emit modificationChanged(m);
+}
+
+void EventEditor::resizeTextColumn()
+{
+    videoEventTable->resizeColumnToContents(VideoEvent::EventTextField);
 }
 
 void EventEditor::scrollToTime(int currentTime)

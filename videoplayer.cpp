@@ -245,7 +245,6 @@ void VideoPlayer::updateTime()
 void VideoPlayer::jumpTo(int increament)
 {
     mediaPlayer->setPosition(mediaPlayer->position() + increament);
-
 }
 
 void VideoPlayer::speedUp()

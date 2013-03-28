@@ -69,6 +69,7 @@ public slots:
      void processDoubleClick(QModelIndex index);
      void warnDuplicates();
      void setModified(bool m = true);
+     void resizeTextColumn();
 
 //     void outputDebug();
 
