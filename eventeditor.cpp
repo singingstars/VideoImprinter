@@ -3,7 +3,7 @@
 
 #include "eventeditor.h"
 #include "eventmodel.h"
-
+#include "eventtable.h"
 
 EventEditor::EventEditor(QWidget *parent) :
     QWidget(parent)

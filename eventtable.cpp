@@ -6,7 +6,7 @@ EventTable::EventTable(QWidget *parent) :
 }
 
 void EventTable::keyPressEvent(QKeyEvent *event)
-{
+{// pass some key press to parent
     switch(event->key())
     {
     // video control
@@ -43,9 +43,9 @@ void EventTable::keyPressEvent(QKeyEvent *event)
     case Qt::Key_S:
     case Qt::Key_L:
 
-        return event->ignore();
+        event->ignore();
 
     default:
-        return QTableView::keyPressEvent(event);
+        QTableView::keyPressEvent(event);
     }
 }
