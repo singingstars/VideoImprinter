@@ -11,7 +11,7 @@ EventEditor::EventEditor(QWidget *parent) :
 {
     QList<VideoEvent *> l;
     videoEventModel = new EventModel(l, this);
-    videoEventTable = new QTableView(this);
+    videoEventTable = new EventTable(this);
 //    videoEventTable->installEventFilter(parent);
 //    videoEventTable->viewport()->installEventFilter(parent);
     videoEventTable->setMinimumSize(80, 60);
@@ -49,6 +49,8 @@ EventEditor::EventEditor(QWidget *parent) :
             , this, SLOT(processDoubleClick(QModelIndex)));
     connect(videoEventTable, SIGNAL(activated(QModelIndex))
             , videoEventModel, SLOT(selectEvent(QModelIndex)));
+    connect(videoEventTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection))
+            , this, SLOT(selectRow(QItemSelection,QItemSelection)));
 }
 
 EventEditor::~EventEditor()
@@ -219,6 +221,12 @@ void EventEditor::highlightCurrentRows(qint64 currentTime)
 void EventEditor::selectRow(int row)
 {
     videoEventModel->selectEvent(row);
+}
+
+void EventEditor::selectRow(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    Q_UNUSED(deselected)
+    videoEventModel->selectEvent(selected.indexes().first());
 }
 
 void EventEditor::selectPreviousEvent()

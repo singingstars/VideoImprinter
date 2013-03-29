@@ -12,6 +12,7 @@
 
 
 #include "eventmodel.h"
+#include "eventtable.h"
 //#include "videoeventdelegate.h"
 
 /**
@@ -63,6 +64,7 @@ public slots:
      void highlightCurrentRows(int currentTime);
      void highlightCurrentRows(qint64 currentTime);
      void selectRow(int row);
+     void selectRow(const QItemSelection & selected, const QItemSelection & deselected);
      void selectPreviousEvent();
      void selectNextEvent();
      void selectCurrentEvent(int currentTime);

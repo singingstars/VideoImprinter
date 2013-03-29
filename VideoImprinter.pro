@@ -20,6 +20,7 @@ SOURCES += main.cpp\
     eventmodel.cpp \
     videoevent.cpp \
 #    videoeventdelegate.cpp
+    eventtable.cpp
 
 HEADERS  += videoimprinter.h \
     videoplayer.h \
@@ -27,3 +28,4 @@ HEADERS  += videoimprinter.h \
     eventmodel.h \
     videoevent.h \
 #    videoeventdelegate.h
+    eventtable.h
