@@ -13,6 +13,8 @@ void EventTable::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
     case Qt::Key_Left:
     case Qt::Key_Right:
+    case Qt::Key_Minus:
+    case Qt::Key_Plus:
 
     // adding video event
     case Qt::Key_0:

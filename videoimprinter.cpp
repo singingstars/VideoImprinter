@@ -308,6 +308,8 @@ bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
         case Qt::Key_Space:
         case Qt::Key_Left:
         case Qt::Key_Right:
+        case Qt::Key_Minus:
+        case Qt::Key_Plus:
 
         // adding video event
         case Qt::Key_0:
@@ -380,12 +382,12 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Right:
         this->keyPressJumpForward(event);
         break;
-//    case Qt::Key_Down:
-//        videoplayer->speedDown();
-//        break;
-//    case Qt::Key_Up:
-//        videoplayer->speedUp();
-//        break;
+    case Qt::Key_Minus:
+        videoplayer->speedDown();
+        break;
+    case Qt::Key_Plus:
+        videoplayer->speedUp();
+        break;
 
     // add video event
     case Qt::Key_0:

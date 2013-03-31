@@ -226,7 +226,15 @@ void EventEditor::selectRow(int row)
 void EventEditor::selectRow(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected)
-    videoEventModel->selectEvent(selected.indexes().first());
+
+    QModelIndexList idList = selected.indexes();
+    if (idList.isEmpty())
+    {
+        videoEventModel->selectEvent(-1);
+        return;
+    }
+
+    videoEventModel->selectEvent(idList.first());
 }
 
 void EventEditor::selectPreviousEvent()

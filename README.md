@@ -26,6 +26,9 @@ Keyboard Shortcuts:
 
 -Video Control
 Space           Play/Pause
++               Increase playback rate
+-               Decrease playback rate
+
 Left            Quick Jump Backwards 1
 Ctrl + Left     Quick Jump Backwards 2
 Shift + Left    Quick Jump Backwards 3
@@ -33,6 +36,7 @@ Shift + Left    Quick Jump Backwards 3
 Right           Quick Jump Forward 1
 Ctrl + Right    Quick Jump Forward 2
 Shift + Right   Quick Jump Forward 3
+Quick Jump rate can be set in config.ini (in mili-sec)
 
 -Adding Event
 0~9             Add Event 0~9
