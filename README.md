@@ -40,6 +40,7 @@ Quick Jump rate can be set in config.ini (in mili-sec)
 
 -Adding Event
 0~9             Add Event 0~9
+Addding mode can be changed in config.ini (Press/Release = 0, Double press = 1)
 
 -Select Event
 P               Select Current Event

@@ -298,7 +298,7 @@ void VideoImprinter::videoSettings()
 
 bool VideoImprinter::eventFilter(QObject *obj, QEvent *ev)
 {
-    if (ev->type() == QEvent::KeyPress)
+    if ((ev->type() == QEvent::KeyPress) || (ev->type() == QEvent::KeyRelease))
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
 
@@ -400,7 +400,7 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     case Qt::Key_7:
     case Qt::Key_8:
     case Qt::Key_9:
-        this->keyPressAddEvent(event);
+        this->keyPressReleaseAddEvent(event);
         break;
 
     // select/modify video event
@@ -445,6 +445,32 @@ void VideoImprinter::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void VideoImprinter::keyReleaseEvent(QKeyEvent *event)
+{
+    if (addingMode == VideoImprinter::DoublePressMode)
+        return;
+
+    switch(event->key())
+    {
+    // add video event
+    case Qt::Key_0:
+    case Qt::Key_1:
+    case Qt::Key_2:
+    case Qt::Key_3:
+    case Qt::Key_4:
+    case Qt::Key_5:
+    case Qt::Key_6:
+    case Qt::Key_7:
+    case Qt::Key_8:
+    case Qt::Key_9:
+        this->keyPressReleaseAddEvent(event);
+        break;
+
+    default:
+        QMainWindow::keyReleaseEvent(event);
+    }
+}
+
 void VideoImprinter::keyPressJumpForward(QKeyEvent *event)
 {
     //TODO: use settings instead of magic numbers
@@ -484,8 +510,11 @@ void VideoImprinter::keyPressJumpBackward(QKeyEvent *event)
 }
 
 
-void VideoImprinter::keyPressAddEvent(QKeyEvent *event)
+void VideoImprinter::keyPressReleaseAddEvent(QKeyEvent *event)
 {// add event, or change selected event text
+
+    if (event->isAutoRepeat())
+        return;
 
     int i = -1;
 
@@ -525,13 +554,23 @@ void VideoImprinter::keyPressAddEvent(QKeyEvent *event)
         return;
     }
 
-    if (event->modifiers() == Qt::ControlModifier)
+    if ((event->modifiers() == Qt::ControlModifier) && (event->type() == QEvent::KeyPress))
     {
         this->changeEventText(eventLabelText[i]);
         return;
     }
 
-    this->toggleEvent(i);
+    if ((addingMode == VideoImprinter::DoublePressMode) && (event->type() == QEvent::KeyPress))
+    {
+        this->toggleEvent(i);
+
+    } else {
+
+        if (event->type() == QEvent::KeyPress)
+            this->beginEvent(i);
+        else if (event->type() == QEvent::KeyRelease)
+            this->endEvent(i);
+    }
 
     return;
 }
@@ -683,6 +722,7 @@ void VideoImprinter::readSettings()
                                            , QString("%1").arg(i))
                                            .toString();
     }
+    addingMode = (VideoImprinter::EventAddingMode)(settings.value(QString("AddingMode"), VideoImprinter::DoublePressMode).toInt());
     settings.endGroup();
 
     settings.beginGroup("Video");
@@ -715,6 +755,7 @@ void VideoImprinter::writeSettings()
     {
         settings.setValue(QString("label%1").arg(i), eventLabelText[i]);
     }
+    settings.setValue(QString("AddingMode"), addingMode);
     settings.endGroup();
 
     settings.beginGroup("Video");

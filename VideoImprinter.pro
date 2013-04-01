@@ -4,6 +4,11 @@
 #
 #-------------------------------------------------
 
+# software info
+VERSION = 1.3.0
+QMAKE_TARGET_PRODUCT = VideoImprinter
+QMAKE_TARGET_COPYRIGHT = singingstars
+
 QT       += core gui
 QT       += multimedia multimediawidgets
 

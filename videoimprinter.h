@@ -69,9 +69,10 @@ protected:
     bool eventFilter(QObject *obj, QEvent *ev);
     void childEvent(QChildEvent* e);
     void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
     void keyPressJumpForward(QKeyEvent *event);
     void keyPressJumpBackward(QKeyEvent *event);
-    void keyPressAddEvent(QKeyEvent *event);
+    void keyPressReleaseAddEvent(QKeyEvent *event);
     void keyPressDeleteEvent(QKeyEvent *event);
 
     void closeEvent(QCloseEvent *event);
@@ -99,6 +100,8 @@ private:
     VideoEvent *currentEvent[numOfEventTypes];
     QString eventLabelText[numOfEventTypes];
     bool isEventGoing[numOfEventTypes];
+    enum EventAddingMode {SinglePressMode = 0, DoublePressMode = 1};
+    EventAddingMode addingMode;
 
     QString currentVideoFile;
     QString currentSrtFile;
