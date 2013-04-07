@@ -17,9 +17,9 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     mediaPlayer->setNotifyInterval(50);
 
     // setup playback speeds
-    qreal tmpSpeeds[numOfSpeeds] = {-2.0, -1.0, 0.1, 0.25, 0.5
-                                 , 1.0, 2.0, 4.0, 8.0, 12.0};
-    currentSpeedId = 5;
+    qreal tmpSpeeds[numOfSpeeds] = {-1.0, 0.1, 0.25, 0.5, 1.0
+                                    , 2.0, 3.0, 4.0, 5.0, 6.0};
+    currentSpeedId = 4;
     for (int i=0; i<numOfSpeeds; i++)
         speeds[i] = tmpSpeeds[i];
 
