@@ -250,7 +250,6 @@ void VideoImprinter::openVideo()
     }
 
     loadVideoFile(fileName);
-    setCurrentVideoFile(fileName);
     statusBar()->showMessage(tr("Movie loaded"), 2000);
 
     // try to load srt file with same name, if not exists create a new one
@@ -261,7 +260,6 @@ void VideoImprinter::openVideo()
         if (maybeSave())
         {
             loadSrtFile(srtFileName);
-            setCurrentSrtFile(srtFileName);
             statusBar()->showMessage(tr("Created event file for the movie"), 2000);
             return;
         }
@@ -270,7 +268,6 @@ void VideoImprinter::openVideo()
     if (maybeSave())
     {
         loadSrtFile(srtFileName);
-        setCurrentSrtFile(srtFileName);
         statusBar()->showMessage(tr("Events of the movie loaded"), 2000);
     }
 }
@@ -286,7 +283,6 @@ void VideoImprinter::openSrt()
             return;
 
         loadSrtFile(fileName);
-        setCurrentSrtFile(fileName);
         statusBar()->showMessage(tr("Events loaded"), 2000);
     }
 }
@@ -870,11 +866,13 @@ void VideoImprinter::setOrientation(Qt::Orientation ori)
 void VideoImprinter::loadSrtFile(const QString filename)
 {
     eventeditor->loadEvents(filename);
+    setCurrentSrtFile(filename);
 }
 
 
 void VideoImprinter::loadVideoFile(const QString filename)
 {
     videoplayer->loadFile(filename);
+    setCurrentVideoFile(filename);
 }
 
