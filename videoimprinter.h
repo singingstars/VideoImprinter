@@ -45,7 +45,7 @@ public slots:
     void changeEventText(QString newText);
 
     QDir getWorkingDir();
-    void setWorkingDIr(QDir dir);
+    void setWorkingDir(QDir dir);
 
     void sortEvents();
 
@@ -54,6 +54,7 @@ public slots:
     void autoSave();
     void openVideo();
     void openSrt();
+    void newSrt();
     void videoSettings();
     void documentWasModified();
     void toggleLayout();
@@ -86,6 +87,7 @@ private:
     QToolBar *mainToolbar;
     QAction *openVideoAct;
     QAction *openSrtAct;
+    QAction *newSrtAct;
     QAction *saveAct;
     QAction *saveAsAct;
     QAction *exitAct;

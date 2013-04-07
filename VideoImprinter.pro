@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 # software info
-VERSION = 1.3.0
+VERSION = 1.4.0
 QMAKE_TARGET_PRODUCT = VideoImprinter
 QMAKE_TARGET_COPYRIGHT = singingstars
 

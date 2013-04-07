@@ -152,7 +152,7 @@ QDir VideoImprinter::getWorkingDir()
     return workingDir;
 }
 
-void VideoImprinter::setWorkingDIr(QDir dir)
+void VideoImprinter::setWorkingDir(QDir dir)
 {
     workingDir = dir;
 }
@@ -220,17 +220,6 @@ void VideoImprinter::openVideo()
                                                     , workingDir.path()
                                                     , tr("Video (*.*)"));
 
-//    QFileDialog openDialog(this, tr("Load Movie"));
-//    openDialog.setAcceptMode(QFileDialog::AcceptOpen);
-//    openDialog.setDirectory(QDir::homePath());
-//    openDialog.setNameFilter(tr("Video (*.*)"));
-
-//    openDialog.exec();
-
-//    QStringList fileNames;
-//    fileNames = openDialog.selectedFiles();
-//    QString fileName = fileNames.first();
-
     if (fileName.isEmpty())
     {
         statusBar()->showMessage(tr("Load canceled"), 2000);
@@ -284,6 +273,25 @@ void VideoImprinter::openSrt()
 
         loadSrtFile(fileName);
         statusBar()->showMessage(tr("Events loaded"), 2000);
+    }
+}
+
+void VideoImprinter::newSrt()
+{
+    if (maybeSave())
+    {
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Create Events As")
+                                                        , currentSrtFile
+                                                        , tr("Subtitle (*.srt)"));
+
+        if (fileName.isEmpty())
+        {
+            statusBar()->showMessage(tr("New srt Canceled."), 2000);
+            return;
+        }
+
+        loadSrtFile(fileName);
+        statusBar()->showMessage(tr("New events created"), 2000);
     }
 }
 
@@ -593,6 +601,10 @@ void VideoImprinter::closeEvent(QCloseEvent *event)
 
 void VideoImprinter::createActions()
 {
+    newSrtAct = new QAction(tr("New srt"), this);
+    newSrtAct->setStatusTip(tr("Create new srt file"));
+    connect(newSrtAct, SIGNAL(triggered()), this, SLOT(newSrt()));
+
     openSrtAct = new QAction(tr("Open srt"), this);
     openSrtAct->setStatusTip(tr("Load events in srt file"));
     connect(openSrtAct, SIGNAL(triggered()), this, SLOT(openSrt()));
@@ -629,6 +641,7 @@ void VideoImprinter::createToolBars()
     mainToolbar = addToolBar(tr("Main Control"));
     mainToolbar->addAction(openVideoAct);
     mainToolbar->addAction(openSrtAct);
+    mainToolbar->addAction(newSrtAct);
     mainToolbar->addAction(saveAct);
     mainToolbar->addAction(saveAsAct);
     mainToolbar->addAction(videoSettingsAct);
