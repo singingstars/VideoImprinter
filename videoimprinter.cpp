@@ -265,7 +265,7 @@ void VideoImprinter::openSrt()
 {
     if (maybeSave())
     {
-        QString fileName = QFileDialog::getOpenFileName(this, tr("Load Events")
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Load Events From an srt File")
                                                         , workingDir.path()
                                                         , tr("Subtitle (*.srt)"));
         if (fileName.isEmpty())
@@ -280,7 +280,7 @@ void VideoImprinter::newSrt()
 {
     if (maybeSave())
     {
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Create Events As")
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Create Events: Give the File a Name")
                                                         , currentSrtFile
                                                         , tr("Subtitle (*.srt)"));
 
